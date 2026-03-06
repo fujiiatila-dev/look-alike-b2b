@@ -1,0 +1,297 @@
+<section class="event-page">
+  <mat-card *ngIf="loading" class="status-card" appearance="outlined">
+    Carregando evento...
+  </mat-card>
+
+  <mat-card *ngIf="!loading && errorMessage" class="status-card error" appearance="outlined">
+    {{ errorMessage }}
+  </mat-card>
+
+  <ng-container *ngIf="!loading && event as evt">
+    <div class="event-view">
+      <header class="header-container">
+        <div class="header-line header-top">
+          <div class="event-headline">
+            <span class="event-badge">#{{ evt.event_id }}</span>
+            <span class="status-chip" [ngClass]="statusClass(evt.status)">
+              {{ evt.status | uppercase }}
+            </span>
+          </div>
+
+          <button mat-flat-button color="primary" type="button" class="primary-action" (click)="openAnnotateModal()"
+            [disabled]="annotating || annotationForm.invalid">
+            {{ annotating ? 'SALVANDO GT...' : 'ANALISAR GT HUMANO' }}
+          </button>
+        </div>
+
+        <div class="header-line header-bottom">
+          <span class="source-chip">{{ evt.source_video || evt.source_path }}</span>
+
+          <div class="header-meta">
+            <span class="meta-item">Criado em {{ evt.created_at | date:'dd MMM yyyy - HH:mm:ss' }}</span>
+            <span class="meta-item" *ngIf="evt.camera_id">Camera {{ evt.camera_id }}</span>
+            <span *ngIf="evt.risk_score !== undefined" class="risk-chip" [ngClass]="riskClass(evt.risk_score)">
+              Risco {{ evt.risk_score | number:'1.0-2' }}
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <div class="event-layout">
+        <section class="main-column">
+          <mat-card class="panel-card video-card" appearance="outlined">
+            <app-video-player #videoPlayer [videoUrl]="videoUrl"></app-video-player>
+
+            <app-gt-timeline
+              class="gt-editor-block"
+              [videoEl]="videoPlayer.videoEl"
+              [duration_s]="timelineDurationSec"
+              [meta]="timelineMeta"
+              [initialSegments]="gtSegments"
+              (segmentsChange)="onSegmentsChange($event)"
+              (saveRequested)="onSaveSegmentRequested($event)"
+            ></app-gt-timeline>
+          </mat-card>
+
+          <mat-card class="panel-card evidence-card" appearance="outlined">
+            <div class="evidence-header">
+              <h3>Evidencias FSPS</h3>
+              <span *ngIf="evidencePaths.length > 0" class="evidence-count">{{ evidencePaths.length }}</span>
+            </div>
+            <div *ngIf="evidencePaths.length === 0" class="muted">Sem evidencias para este evento.</div>
+
+            <div class="evidence-grid" *ngIf="evidencePaths.length > 0">
+              <button
+                type="button"
+                *ngFor="let evidencePath of visibleEvidencePaths; trackBy: trackByEvidence"
+                class="evidence-item"
+                (click)="openEvidence(evidencePath)"
+                [attr.aria-label]="'Abrir evidencia ' + evidenceFileName(evidencePath)"
+              >
+                <img [src]="toServeUrl(evidencePath)" [alt]="evidenceFileName(evidencePath)" loading="lazy" />
+                <span class="evidence-open-hint">Ampliar</span>
+                <span class="evidence-caption">{{ evidenceFileName(evidencePath) }}</span>
+              </button>
+            </div>
+
+            <button
+              *ngIf="hiddenEvidenceCount > 0"
+              type="button"
+              class="evidence-toggle"
+              (click)="toggleEvidenceExpand()"
+            >
+              {{ evidenceExpanded ? 'Mostrar menos' : 'Ver todas (' + evidencePaths.length + ' evidencias)' }}
+            </button>
+          </mat-card>
+
+          <mat-card class="panel-card runs-card" appearance="outlined">
+            <h3>Execucoes de correlacao</h3>
+
+            <div class="runs-scroll">
+              <div *ngIf="metrics.length === 0" class="muted">Sem metricas para este evento.</div>
+
+              <div class="runs-list" *ngIf="metrics.length > 0">
+                <article class="run-row" *ngFor="let metric of metrics; trackBy: trackByMetric">
+                  <header class="run-header">
+                    <strong>{{ metric.run_type }}</strong>
+                    <span>{{ metric.created_at | date:'dd/MM HH:mm:ss' }}</span>
+                  </header>
+
+                  <mat-progress-bar mode="determinate" [value]="metricBarValue(metric)"></mat-progress-bar>
+
+                  <div class="run-values">
+                    <span>IoU {{ (metric.overlap_ratio * 100) | number:'1.0-1' }}%</span>
+                    <span>Atraso {{ metric.delay_frames }}f</span>
+                    <span>Precisao {{ (metric.precision_window * 100) | number:'1.0-1' }}%</span>
+                    <span>Ruido {{ metric.spam_outside_gt }}</span>
+                    <span>Pontuacao {{ metric.score_final | number:'1.0-2' }}</span>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </mat-card>
+        </section>
+
+        <aside class="side-column">
+          <div class="side-scroll">
+            <mat-card class="panel-card side-card metrics-card" appearance="outlined">
+              <div class="side-head">
+                <h3 class="card-title">Metricas FSPS</h3>
+                <span class="metric-highlight">{{ latestMetric?.run_type || 'Sem execucao' }}</span>
+              </div>
+
+              <div class="card-separator"></div>
+
+              <div class="kv-grid">
+                <span>Evento FSPS</span>
+                <strong>{{ evt.fsps_event_id || '--' }}</strong>
+
+                <span>ID da trilha</span>
+                <strong>{{ evt.track_id ?? '--' }}</strong>
+
+                <span>Horario</span>
+                <strong>{{ evt.timestamp_utc ? (evt.timestamp_utc | date:'dd/MM/yyyy HH:mm:ss') : '--' }}</strong>
+              </div>
+
+              <ng-container *ngIf="latestMetric as metric; else noMetricData">
+                <div class="quality-score">
+                  <span class="metric-label">Pontuacao de qualidade</span>
+                  <div class="metric-value-large">{{ metric.score_final | number:'1.0-2' }}</div>
+                </div>
+
+                <div class="metric-row">
+                  <div class="metric-label-line">
+                    <span class="metric-label">Sobreposicao (IoU)</span>
+                    <span class="metric-value">{{ toPercent(metric.overlap_ratio) | number:'1.0-1' }}%</span>
+                  </div>
+                  <div class="metric-bar">
+                    <div class="metric-fill metric-fill-iou" [style.width.%]="toPercent(metric.overlap_ratio)"></div>
+                  </div>
+                </div>
+
+                <div class="metric-row">
+                  <div class="metric-label-line">
+                    <span class="metric-label">Atraso</span>
+                    <span class="metric-value">{{ metric.delay_frames }}f</span>
+                  </div>
+                  <div class="metric-bar metric-bar-risk">
+                    <div class="metric-fill metric-fill-delay" [style.width.%]="delayBarValue(metric.delay_frames)">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-row">
+                  <div class="metric-label-line">
+                    <span class="metric-label">Precisao GT</span>
+                    <span class="metric-value">{{ toPercent(metric.precision_window) | number:'1.0-1' }}%</span>
+                  </div>
+                  <div class="metric-bar">
+                    <div class="metric-fill metric-fill-precision" [style.width.%]="toPercent(metric.precision_window)">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="metric-row">
+                  <div class="metric-label-line">
+                    <span class="metric-label">Spam fora GT</span>
+                    <span class="metric-value">{{ metric.spam_outside_gt }}</span>
+                  </div>
+                  <div class="metric-bar">
+                    <div class="metric-fill metric-fill-spam" [style.width.%]="spamBarValue(metric.spam_outside_gt)">
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+
+              <ng-template #noMetricData>
+                <div class="muted">Sem metricas para este evento.</div>
+              </ng-template>
+
+              <h4>Fatores de risco</h4>
+              <ul class="tag-list">
+                <li *ngFor="let factor of riskFactors">{{ translateRiskFactor(factor) }}</li>
+                <li *ngIf="riskFactors.length === 0" class="muted">--</li>
+              </ul>
+
+              <h4>Historico de zonas</h4>
+              <ul class="tag-list">
+                <li *ngFor="let zone of zoneHistory">{{ translateZoneLabel(zone) }}</li>
+                <li *ngIf="zoneHistory.length === 0" class="muted">--</li>
+              </ul>
+            </mat-card>
+
+            <mat-card class="panel-card side-card" appearance="outlined">
+              <h3 class="card-title">GT Humano</h3>
+              <div class="card-separator"></div>
+
+              <form [formGroup]="annotationForm" class="form-grid" (ngSubmit)="saveAnnotation()">
+                <label>
+                  Rotulo
+                  <select formControlName="label">
+                    <option value="Confirmed">Confirmado</option>
+                    <option value="Suspect">Suspeito</option>
+                    <option value="False_Positive">Falso positivo</option>
+                  </select>
+                </label>
+
+                <label>
+                  Inicio (s)
+                  <input type="number" step="0.001" min="0" formControlName="start_sec" />
+                </label>
+
+                <label>
+                  Fim (s)
+                  <input type="number" step="0.001" min="0" formControlName="end_sec" />
+                </label>
+
+                <label>
+                  Criado por
+                  <input type="text" formControlName="created_by" />
+                </label>
+
+                <button mat-flat-button color="primary" type="submit" class="primary-action"
+                  [disabled]="annotating || annotationForm.invalid">
+                  {{ annotating ? 'Salvando...' : 'Salvar GT' }}
+                </button>
+              </form>
+            </mat-card>
+
+            <mat-card class="panel-card side-card" appearance="outlined">
+              <h3 class="card-title">Refinar Deteccao</h3>
+              <div class="card-separator"></div>
+
+              <form [formGroup]="refineForm" class="form-grid" (ngSubmit)="runReprocess()">
+                <label>
+                  Confianca
+                  <input type="number" min="0.1" max="0.99" step="0.01" formControlName="conf" />
+                </label>
+
+                <label>
+                  FPS
+                  <input type="number" min="1" max="30" step="1" formControlName="fps" />
+                </label>
+
+                <label>
+                  Limiar de alerta
+                  <input type="number" min="1" max="200" step="1" formControlName="alert_threshold" />
+                </label>
+
+                <button mat-flat-button color="primary" type="submit" class="primary-action"
+                  [disabled]="reprocessing || refineForm.invalid">
+                  {{ reprocessing ? 'Reprocessando...' : 'Reprocessar' }}
+                </button>
+              </form>
+
+              <div class="action-row">
+                <button mat-stroked-button type="button" class="secondary-action" (click)="triggerBlur()"
+                  [disabled]="blurring">
+                  {{ blurring ? 'Desfoque...' : 'Desfoque' }}
+                </button>
+
+                <button mat-stroked-button type="button" class="secondary-action" (click)="triggerExport()"
+                  [disabled]="exporting">
+                  {{ exporting ? 'Exportando...' : 'Exportar' }}
+                </button>
+              </div>
+            </mat-card>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </ng-container>
+
+  <div
+    class="evidence-lightbox"
+    *ngIf="selectedEvidencePath as evidencePath"
+    (click)="onEvidenceBackdropClick($event)"
+  >
+    <div class="evidence-dialog" role="dialog" aria-modal="true" [attr.aria-label]="selectedEvidenceName">
+      <button type="button" class="lightbox-close" (click)="closeEvidence()" aria-label="Fechar visualizacao">
+        X
+      </button>
+
+      <img [src]="toServeUrl(evidencePath)" [alt]="selectedEvidenceName" />
+      <div class="lightbox-caption">{{ selectedEvidenceName }}</div>
+    </div>
+  </div>
+</section>

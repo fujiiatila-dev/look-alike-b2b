@@ -1,0 +1,114 @@
+.page-header {
+  margin-bottom: 1.5rem;
+
+  h2 {
+    font: var(--text-h1);
+    color: var(--edge-text);
+    margin: 0;
+  }
+}
+
+.section-card {
+  background: var(--edge-surface);
+  border: 1px solid var(--edge-border);
+  border-radius: var(--fd-radius-md);
+  box-shadow: var(--fd-shadow-1);
+  padding: 1.25rem;
+  overflow-x: auto;
+}
+
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+
+  th, td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--edge-border);
+  }
+
+  th {
+    font-weight: 600;
+    color: var(--edge-muted);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  td { color: var(--edge-text); }
+  tbody tr:hover { background: rgba(255, 213, 0, 0.04); }
+}
+
+.alert-message {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  display: inline-flex;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-danger { background: rgba(226, 65, 60, 0.08); color: #E2413C; }
+.badge-warning { background: rgba(254, 176, 33, 0.1); color: #B37400; }
+.badge-info { background: rgba(78, 97, 246, 0.08); color: #4E61F6; }
+.badge-neutral { background: #F3F4F6; color: #6B7280; }
+
+.table-link {
+  color: #9b7200;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.table-muted {
+  color: var(--edge-muted);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: var(--edge-muted);
+}
+
+.loading-text {
+  color: var(--edge-muted);
+  font-size: 0.9rem;
+  padding: 2rem 0;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem 1rem;
+  text-align: center;
+
+  .empty-icon {
+    font-size: 3rem;
+    width: 3rem;
+    height: 3rem;
+    color: #16A34A;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    color: var(--edge-muted);
+    font-size: 0.9rem;
+  }
+}

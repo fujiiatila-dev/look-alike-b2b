@@ -1,0 +1,54 @@
+<mat-card class="timeline-card" appearance="outlined">
+  <div class="timeline-head">
+    <strong>Events 5</strong>
+    <span>Cursor {{ formatClock(currentTime) }}</span>
+    <span>Duracao {{ formatClock(duration) }}</span>
+  </div>
+
+  <div class="timeline-grid">
+    <div class="timeline-lane-title">GT</div>
+    <div class="timeline-lane">
+      <span
+        *ngFor="let segment of gtSegments; trackBy: trackBySegmentId"
+        class="timeline-segment"
+        [ngClass]="segment.cssClass"
+        [style.left.%]="segment.leftPct"
+        [style.width.%]="segment.widthPct"
+      ></span>
+    </div>
+
+    <div class="timeline-lane-title">Baseline</div>
+    <div class="timeline-lane">
+      <span
+        *ngFor="let segment of baselineSegments; trackBy: trackBySegmentId"
+        class="timeline-segment"
+        [ngClass]="segment.cssClass"
+        [style.left.%]="segment.leftPct"
+        [style.width.%]="segment.widthPct"
+      ></span>
+    </div>
+
+    <div class="timeline-lane-title">Refinado</div>
+    <div class="timeline-lane">
+      <span
+        *ngFor="let segment of refinedSegments; trackBy: trackBySegmentId"
+        class="timeline-segment"
+        [ngClass]="segment.cssClass"
+        [style.left.%]="segment.leftPct"
+        [style.width.%]="segment.widthPct"
+      ></span>
+    </div>
+
+    <div class="timeline-cursor" [style.left.%]="cursorLeftPct"></div>
+  </div>
+
+  <div class="timeline-ruler" aria-hidden="true">
+    <span class="ruler-tick" *ngFor="let tick of tickMarks; trackBy: trackByTick"></span>
+  </div>
+
+  <div class="timeline-times">
+    <span>00:00</span>
+    <span>{{ formatClock(currentTime) }}</span>
+    <span>{{ formatClock(duration) }}</span>
+  </div>
+</mat-card>

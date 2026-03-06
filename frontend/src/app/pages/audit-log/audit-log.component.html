@@ -1,0 +1,39 @@
+<div class="container">
+    <div class="breadcrumb">
+        <a [routerLink]="R.events">&larr; Voltar para Eventos</a>
+    </div>
+    <header>
+        <h1>Audit Log (Exportações LGPD)</h1>
+    </header>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Export ID</th>
+                    <th>Evento</th>
+                    <th>Operador</th>
+                    <th>Pasta Lógica</th>
+                    <th>Redacted SHA-256</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="loading">
+                    <td colspan="6" class="center-text">Carregando logs de auditoria...</td>
+                </tr>
+                <tr *ngIf="!loading && exports.length === 0">
+                    <td colspan="6" class="center-text">Nenhuma exportação realizada ainda.</td>
+                </tr>
+                <tr *ngFor="let exp of exports">
+                    <td>{{ exp.exported_at | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+                    <td class="mono muted">{{ getShortId(exp.export_id) }}</td>
+                    <td><a [routerLink]="R.event(exp.event_id)" class="event-link">{{ getShortId(exp.event_id) }}</a></td>
+                    <td>{{ exp.exported_by }}</td>
+                    <td class="muted">{{ getRelativePath(exp.exported_path) }}</td>
+                    <td class="hash" [title]="exp.sha256">{{ getShortHash(exp.sha256) }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

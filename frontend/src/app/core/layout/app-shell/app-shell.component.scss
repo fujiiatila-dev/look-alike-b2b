@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.shell-container {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(255, 213, 0, 0.1), transparent 20%),
+    linear-gradient(180deg, #f7f9fb 0%, #fbfcfd 100%);
+}
+
+.shell-sidenav {
+  width: 332px;
+  background: transparent;
+  border-right: 0;
+  box-shadow: 24px 0 48px rgba(17, 24, 39, 0.06);
+}
+
+.shell-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.shell-main {
+  flex: 1;
+  overflow: auto;
+  padding: 1.4rem 1.6rem 1.8rem;
+}
+
+@media (max-width: 1024px) {
+  .shell-sidenav {
+    width: min(92vw, 340px);
+    box-shadow: none;
+  }
+
+  .shell-main {
+    padding: 1rem 0.9rem 1.25rem;
+  }
+}

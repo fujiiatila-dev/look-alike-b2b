@@ -1,0 +1,142 @@
+<div class="gt-editor" *ngIf="displayDuration > 0.001; else noDuration">
+  <div class="gt-toolbar">
+    <div class="time-readout">{{ formatTime(currentTime) }} / {{ formatTime(displayDuration) }}</div>
+
+    <div class="meta-badges">
+      <span class="meta-badge vfr" *ngIf="meta.is_vfr_suspected">VFR: snap por frame indisponivel</span>
+      <span class="meta-badge" *ngIf="!meta.is_vfr_suspected && canFrameSnap">Snap: {{ fineStep | number:'1.3-3' }}s</span>
+    </div>
+  </div>
+
+  <div class="timeline-shell">
+    <div class="timeline-main">
+      <div class="tick-layer" aria-hidden="true">
+        <div
+          *ngFor="let tick of ticks; trackBy: trackByTick"
+          class="tick"
+          [class.major]="tick.major"
+          [style.left.%]="tick.leftPct"
+        ></div>
+      </div>
+
+      <div #railRef class="timeline-rail main-rail" (pointerdown)="onRailPointerDown($event)">
+        <div
+          *ngIf="hasDraftRange"
+          class="segment-block segment-draft"
+          [style.left.%]="draftLeftPct"
+          [style.width.%]="draftWidthPct"
+        ></div>
+      </div>
+
+      <div class="time-scale" aria-hidden="true">
+        <span
+          *ngFor="let tick of majorTicks; trackBy: trackByTick"
+          class="time-tick"
+          [style.left.%]="tick.leftPct"
+        >
+          {{ formatTime(tick.sec) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="segment-lanes" *ngIf="visibleSegments.length > 0">
+      <div class="segment-lane" *ngFor="let segment of visibleSegments; trackBy: trackBySegment">
+        <div class="timeline-rail lane-rail" (pointerdown)="onRailPointerDown($event)">
+          <div
+            class="segment-block lane-segment"
+            [ngClass]="[segmentCssClass(segment.label), selectedId === segment.id ? 'is-selected' : '']"
+            [style.left.%]="segmentLeftPct(segment)"
+            [style.width.%]="segmentWidthPct(segment)"
+            (pointerdown)="onSegmentPointerDown($event, segment)"
+          >
+            <button
+              *ngIf="selectedId === segment.id"
+              class="segment-handle left"
+              type="button"
+              (pointerdown)="onHandlePointerDown($event, segment, 'left')"
+              aria-label="Ajustar inicio"
+            ></button>
+
+            <button
+              *ngIf="selectedId === segment.id"
+              class="segment-handle right"
+              type="button"
+              (pointerdown)="onHandlePointerDown($event, segment, 'right')"
+              aria-label="Ajustar fim"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="playhead playhead-global"
+      [style.left.%]="playheadLeftPct"
+      (pointerdown)="onPlayheadPointerDown($event)"
+      aria-label="Playhead"
+    >
+      <div class="playhead-cap"></div>
+    </div>
+  </div>
+
+  <div class="controls-row">
+    <button type="button" class="ctl-btn" (click)="togglePlay()">{{ playing ? 'Pause' : 'Play' }}</button>
+    <button type="button" class="ctl-btn" (click)="jumpBy(-1)">-1s</button>
+    <button type="button" class="ctl-btn" (click)="jumpBy(1)">+1s</button>
+
+    <button type="button" class="ctl-btn" (click)="stepBy(-1)">&lt;</button>
+    <button type="button" class="ctl-btn" (click)="stepBy(1)">&gt;</button>
+
+    <button type="button" class="ctl-btn" [class.is-active]="draftStart !== null" (click)="markIn()">Mark IN</button>
+    <button type="button" class="ctl-btn" [class.is-active]="draftEnd !== null" (click)="markOut()">Mark OUT</button>
+
+    <label class="inline-field">
+      <span>Rotulo</span>
+      <select [value]="activeLabel" (change)="onLabelChange($any($event.target).value)">
+        <option *ngFor="let option of labelOptions" [value]="option.value">{{ option.text }}</option>
+      </select>
+    </label>
+
+    <label class="snap-field" [class.is-disabled]="!canFrameSnap">
+      <input type="checkbox" [checked]="snapEnabled" [disabled]="!canFrameSnap" (change)="toggleSnap()" />
+      <span>Snap</span>
+    </label>
+
+    <button
+      type="button"
+      class="ctl-btn save-btn"
+      [disabled]="!canAddSegment"
+      (click)="addSegment()"
+    >
+      + Novo Segmento
+    </button>
+  </div>
+
+  <div class="draft-bar" *ngIf="draftStart !== null || draftEnd !== null">
+    Rascunho: {{ formatTime(draftStart ?? currentTime) }} - {{ formatTime(draftEnd ?? currentTime) }}
+  </div>
+
+  <div class="segment-list">
+    <article
+      *ngFor="let segment of visibleSegments; trackBy: trackBySegment; index as idx"
+      class="segment-item"
+      [class.is-selected]="selectedId === segment.id"
+      (click)="selectSegment(segment)"
+    >
+      <div class="segment-copy">
+        <strong>Segmento {{ idx + 1 }}:</strong>
+        <span>
+          {{ formatTime(segment.start_sec) }}-{{ formatTime(segment.end_sec) }}
+          ({{ formatDuration(segment) }}s)
+          [{{ labelText(segment.label) }}]
+        </span>
+      </div>
+
+      <button type="button" class="remove-btn" (click)="removeSegment(segment.id, $event)">X</button>
+    </article>
+  </div>
+</div>
+
+<ng-template #noDuration>
+  <div class="gt-editor-empty">Duracao de video indisponivel para timeline GT.</div>
+</ng-template>

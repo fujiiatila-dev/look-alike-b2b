@@ -1,0 +1,204 @@
+<section class="timeline-workbench" [class.timeline-workbench--empty]="!hasEvents()">
+  <div class="timeline-head">
+    <div>
+      <p class="timeline-kicker">Timeline estilo editor</p>
+      <h3>Timeline operacional</h3>
+      <p class="timeline-subtitle">
+        Scroll para zoom, Shift + scroll para navegar e clique nos clipes para investigar o evento.
+      </p>
+    </div>
+
+    <div class="timeline-stats" *ngIf="hasEvents()">
+      <span class="timeline-stat">
+        <mat-icon>conversion_path</mat-icon>
+        {{ resolvedEvents().length }} eventos na página
+      </span>
+      <span class="timeline-stat">
+        <mat-icon>zoom_in_map</mat-icon>
+        {{ zoomFactor() | number: '1.1-1' }}x
+      </span>
+      <span class="timeline-stat">
+        <mat-icon>timer</mat-icon>
+        {{ formatSpan(visibleSpanMs()) }} visíveis
+      </span>
+    </div>
+  </div>
+
+  <ng-container *ngIf="hasEvents(); else emptyState">
+    <div class="timeline-toolbar">
+      <div class="timeline-range">
+        <span class="timeline-range__label">Janela</span>
+        <strong>{{ formatAxisRange(visibleStartMs(), visibleEndMs()) }}</strong>
+      </div>
+
+      <div class="timeline-toolbar__controls">
+        <button type="button" class="timeline-btn" (click)="panLeft()" matTooltip="Navegar para trás">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+
+        <div class="timeline-zoom">
+          <button type="button" class="timeline-btn" (click)="zoomOut()" matTooltip="Zoom out">
+            <mat-icon>remove</mat-icon>
+          </button>
+
+          <label class="timeline-zoom__slider">
+            <span>Zoom</span>
+            <input
+              type="range"
+              min="0"
+              [max]="zoomLevels.length - 1"
+              [value]="zoomIndex()"
+              (input)="onZoomInput($event)" />
+          </label>
+
+          <button type="button" class="timeline-btn" (click)="zoomIn()" matTooltip="Zoom in">
+            <mat-icon>add</mat-icon>
+          </button>
+        </div>
+
+        <button type="button" class="timeline-btn" (click)="panRight()" matTooltip="Navegar para frente">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <div class="timeline-stage" (wheel)="onTimelineWheel($event)">
+      <div #scrubRef class="timeline-scrub-ref" aria-hidden="true"></div>
+
+      <div class="timeline-ruler" (pointerdown)="onScrubPointerDown($event)" aria-hidden="true">
+        <span
+          *ngFor="let tick of ticks(); trackBy: trackByTick"
+          class="timeline-ruler__tick"
+          [class.timeline-ruler__tick--major]="tick.major"
+          [style.left.%]="tick.leftPct">
+          <span class="timeline-ruler__label" *ngIf="tick.label">{{ tick.label }}</span>
+        </span>
+      </div>
+
+      <div class="timeline-grid" aria-hidden="true">
+        <span
+          *ngFor="let tick of ticks(); trackBy: trackByTick"
+          class="timeline-grid__line"
+          [class.timeline-grid__line--major]="tick.major"
+          [style.left.%]="tick.leftPct"></span>
+      </div>
+
+      <div
+        class="timeline-playhead"
+        [style.left.%]="playheadLeftPct()"
+        (pointerdown)="onPlayheadPointerDown($event)">
+        <span class="timeline-playhead__time">{{ formatPlayheadTime(activeTimeMs()) }}</span>
+        <span class="timeline-playhead__cap"></span>
+      </div>
+
+      <div class="timeline-lanes">
+        <article *ngFor="let lane of lanes(); trackBy: trackByLane" class="timeline-lane">
+          <div class="timeline-lane__meta">
+            <div class="timeline-lane__title">
+              <mat-icon>{{ lane.icon }}</mat-icon>
+              <strong>{{ lane.label }}</strong>
+            </div>
+            <span>{{ lane.caption }}</span>
+          </div>
+
+          <div class="timeline-track" (pointerdown)="onScrubPointerDown($event)">
+            <button
+              *ngFor="let item of lane.items; trackBy: trackByLaneItem"
+              type="button"
+              class="timeline-item"
+              [class.timeline-item--selected]="item.selected"
+              [class.timeline-item--entry]="item.variant === 'entry'"
+              [class.timeline-item--exit]="item.variant === 'exit'"
+              [class.timeline-item--dwell]="item.variant === 'dwell'"
+              [class.timeline-item--alert]="item.variant === 'alert'"
+              [class.timeline-item--evidence]="item.variant === 'evidence'"
+              [style.left.%]="item.leftPct"
+              [style.width.%]="item.widthPct"
+              (pointerdown)="$event.stopPropagation()"
+              (click)="selectEvent(item.eventId)"
+              [matTooltip]="item.title + ' • ' + item.subtitle">
+              <mat-icon>{{ item.icon }}</mat-icon>
+            </button>
+
+            <div *ngIf="lane.items.length === 0" class="timeline-track__empty">
+              Nenhum clip nesta janela.
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div #overviewRef class="timeline-overview" (pointerdown)="onOverviewPointerDown($event)">
+      <div class="timeline-overview__grid" aria-hidden="true"></div>
+
+      <span
+        *ngFor="let item of overviewItems(); trackBy: trackByOverviewItem"
+        class="timeline-overview__item"
+        [class.timeline-overview__item--selected]="item.selected"
+        [class.timeline-overview__item--entry]="item.variant === 'entry'"
+        [class.timeline-overview__item--exit]="item.variant === 'exit'"
+        [class.timeline-overview__item--dwell]="item.variant === 'dwell'"
+        [class.timeline-overview__item--alert]="item.variant === 'alert'"
+        [class.timeline-overview__item--evidence]="item.variant === 'evidence'"
+        [style.left.%]="item.leftPct"
+        [style.width.%]="item.widthPct"></span>
+
+      <div
+        class="timeline-overview__window"
+        [style.left.%]="overviewWindowLeftPct()"
+        [style.width.%]="overviewWindowWidthPct()"></div>
+    </div>
+
+    <div class="timeline-inspector" *ngIf="selectedEvent() as selected">
+      <div class="timeline-inspector__copy">
+        <p class="timeline-inspector__kicker">Evento selecionado</p>
+        <div class="timeline-inspector__headline">
+          <h4>{{ eventTypeLabel(selected.type) }}</h4>
+          <span>{{ formatAbsoluteTime(selected.timeMs) }}</span>
+        </div>
+        <strong>{{ selected.title }}</strong>
+        <span>{{ selected.meta }}</span>
+      </div>
+
+      <div class="timeline-inspector__evidence" *ngIf="selected.evidence_path && evidenceUrl(selected.evidence_path) as evidenceSrc; else noEvidence">
+        <button type="button" class="timeline-thumb" (click)="openEvidence(selected.evidence_path)">
+          <img [src]="evidenceSrc" alt="Evidência selecionada" />
+          <span class="timeline-thumb__cta">Abrir evidência</span>
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noEvidence>
+      <div class="timeline-inspector timeline-inspector--empty">
+        <mat-icon>image_not_supported</mat-icon>
+        <div>
+          <strong>Este evento não tem snapshot persistido.</strong>
+          <span>Use os clips dourados da faixa Snapshots para abrir evidências anexadas.</span>
+        </div>
+      </div>
+    </ng-template>
+
+    <div class="timeline-filmstrip" *ngIf="visibleEvidence().length > 0">
+      <button
+        *ngFor="let event of visibleEvidence(); trackBy: trackByEvidence"
+        type="button"
+        class="timeline-filmstrip__item"
+        [class.timeline-filmstrip__item--selected]="selectedEventId() === event.event_id"
+        (pointerdown)="$event.stopPropagation()"
+        (click)="selectEvent(event.event_id)">
+        <img [src]="evidenceUrl(event.evidence_path)" alt="Evidência da timeline" />
+        <span>{{ formatAbsoluteTime(event.timeMs) }}</span>
+      </button>
+    </div>
+  </ng-container>
+</section>
+
+<ng-template #emptyState>
+  <div class="timeline-empty">
+    <mat-icon>movie_off</mat-icon>
+    <div>
+      <strong>A timeline aparece quando esta câmera persistir eventos.</strong>
+      <span>Assim que entradas, permanências ou alertas forem gravados, os clips surgem aqui com zoom temporal.</span>
+    </div>
+  </div>
+</ng-template>

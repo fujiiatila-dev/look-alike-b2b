@@ -1,0 +1,88 @@
+:host {
+  display: block;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.breadcrumb a {
+  color: var(--accent-blue);
+  text-decoration: none;
+  font-size: 14px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--edge-text);
+  margin: 16px 0;
+}
+
+.table-wrapper {
+  background: var(--edge-surface);
+  border-radius: var(--fd-radius-lg);
+  border: 1px solid var(--edge-border);
+  box-shadow: var(--fd-shadow-1);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--edge-border);
+  color: var(--edge-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  background: #FAFBFB;
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--edge-border);
+  color: var(--edge-text);
+  font-size: 14px;
+}
+
+.event-link {
+  color: var(--accent-blue);
+  font-weight: 600;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.mono {
+  font-family: var(--font-family);
+  font-size: 13px;
+}
+
+.muted {
+  color: var(--edge-muted);
+}
+
+.hash {
+  font-family: var(--font-family);
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.center-text {
+  text-align: center;
+  color: var(--edge-muted);
+}

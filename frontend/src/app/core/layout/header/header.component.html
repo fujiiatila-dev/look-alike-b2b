@@ -1,0 +1,49 @@
+<mat-toolbar class="header-toolbar" role="banner">
+  <button mat-icon-button type="button" class="menu-btn" aria-label="Abrir menu" (click)="onMenuToggle()">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <div class="title-group">
+    <h1 class="page-title">{{ pageTitle() }}</h1>
+
+    @if (clientCtx.context(); as ctx) {
+      <div class="title-badges">
+        <span class="client-badge">{{ ctx.display_name }}</span>
+        <span class="solution-badge" [class.office]="ctx.solution_kind === 'office'" [class.shoplifting]="ctx.solution_kind !== 'office'">
+          {{ ctx.solution_kind === 'office' ? 'Office' : 'Shoplifting' }}
+        </span>
+      </div>
+    }
+  </div>
+
+  <div class="header-spacer"></div>
+
+  <div class="header-badge">
+    <mat-icon class="header-badge-icon">verified_user</mat-icon>
+    <span>LGPD</span>
+  </div>
+
+  <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger" *ngIf="auth.currentUser() as user">
+    <div class="trigger-content">
+      <div class="user-avatar">{{ user.name.charAt(0).toUpperCase() }}</div>
+      <span class="user-name">{{ user.name }}</span>
+      <mat-icon class="expand-icon">expand_more</mat-icon>
+    </div>
+  </button>
+
+  <mat-menu #userMenu="matMenu" xPosition="before">
+    <div class="user-menu-header" *ngIf="auth.currentUser() as user">
+      <strong>{{ user.name }}</strong>
+      <small>{{ user.email }}</small>
+    </div>
+    <mat-divider></mat-divider>
+    <a mat-menu-item [routerLink]="R.profile">
+      <mat-icon>person</mat-icon>
+      <span>Meu Perfil</span>
+    </a>
+    <button mat-menu-item (click)="onLogout()">
+      <mat-icon>logout</mat-icon>
+      <span>Sair</span>
+    </button>
+  </mat-menu>
+</mat-toolbar>

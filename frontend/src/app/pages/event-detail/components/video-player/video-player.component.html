@@ -1,0 +1,19 @@
+<div class="video-player">
+  <div class="video-frame" *ngIf="videoUrl; else mockFrame">
+    <video
+      #videoRef
+      class="video-element"
+      controls
+      controlsList="nodownload noplaybackrate"
+      [src]="videoUrl"
+    ></video>
+  </div>
+
+  <ng-template #mockFrame>
+    <div class="video-frame mock-frame">
+      <div class="mock-grid"></div>
+      <div class="mock-person"></div>
+      <span>Feed indisponivel no modo UI-only</span>
+    </div>
+  </ng-template>
+</div>

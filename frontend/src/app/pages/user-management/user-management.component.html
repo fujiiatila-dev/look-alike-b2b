@@ -1,0 +1,81 @@
+<div class="users-page">
+  <div class="register-card">
+    <h3>Novo Usuario</h3>
+    <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="register-form">
+      <mat-form-field appearance="outline">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Senha</mat-label>
+        <input matInput formControlName="password" type="password" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Perfil</mat-label>
+        <mat-select formControlName="role">
+          <mat-option value="analyst">Analista</mat-option>
+          <mat-option value="admin">Administrador</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button type="submit" class="register-btn" [disabled]="registerForm.invalid || creating()">
+        {{ creating() ? 'Criando...' : 'Criar Usuario' }}
+      </button>
+    </form>
+  </div>
+
+  <div class="users-card">
+    <h3>Usuarios Cadastrados</h3>
+
+    <div *ngIf="loading()" class="loading-text">Carregando...</div>
+
+    <div class="users-table" *ngIf="!loading() && users().length > 0">
+      <div class="table-header">
+        <span>Nome</span>
+        <span>Email</span>
+        <span>Perfil</span>
+        <span>Status</span>
+        <span>Criado em</span>
+        <span>Ações</span>
+      </div>
+      <div class="table-row" *ngFor="let u of users()">
+        <span class="user-name">{{ u.name }}</span>
+        <span class="user-email">{{ u.email }}</span>
+        <span>
+          <span class="role-badge" [class.role-admin]="u.role === 'admin'">
+            {{ u.role === 'admin' ? 'Admin' : 'Analista' }}
+          </span>
+        </span>
+        <span>
+          <span class="status-dot" [class.active]="u.is_active" [class.inactive]="!u.is_active"></span>
+          {{ u.is_active ? 'Ativo' : 'Inativo' }}
+        </span>
+        <span class="user-date">{{ u.created_at | slice:0:10 }}</span>
+        <span class="actions-cell">
+          <mat-slide-toggle
+            [checked]="!!u.is_active"
+            (change)="toggleActive(u)"
+            color="primary">
+          </mat-slide-toggle>
+          <button mat-icon-button class="delete-btn"
+            *ngIf="!isSelf(u)"
+            (click)="onDelete(u)"
+            title="Excluir usuario">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="!loading() && users().length === 0" class="empty-text">
+      Nenhum usuario cadastrado.
+    </div>
+  </div>
+</div>

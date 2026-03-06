@@ -1,0 +1,95 @@
+<div class="card">
+  <!-- Thumbnail area (16:9) — snapshot over gradient -->
+  <a class="card-thumbnail" [routerLink]="R.camera(camera().camera_id)">
+    <!-- Gradient always present as background layer -->
+    <div class="thumbnail-gradient">
+      <!-- Loading/error placeholder (YouTube-style) -->
+      @if (!showSnapshot()) {
+        <div class="thumbnail-placeholder">
+          @if (snapshotError()) {
+            <mat-icon class="placeholder-icon">videocam_off</mat-icon>
+            <span class="placeholder-text">Sem sinal</span>
+          } @else {
+            <div class="placeholder-spinner"></div>
+            <span class="placeholder-text">Conectando...</span>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Snapshot / live frame rendered on top; hidden via CSS when not available -->
+    @if (displayUrl()) {
+      <img
+        class="thumbnail-img"
+        [class.hidden]="!showSnapshot()"
+        [src]="displayUrl()"
+        alt="Snapshot"
+        (load)="onSnapshotLoad()"
+        (error)="onSnapshotError()" />
+    }
+
+    <!-- Status badge overlay -->
+    <div class="badge-overlay">
+      <app-status-badge
+        [label]="camera().state | cameraStateLabel"
+        [color]="camera().state | cameraStateColor" />
+    </div>
+
+    <!-- Backend badge -->
+    <div class="backend-overlay">
+      <span class="backend-badge">{{ camera().backend | uppercase }}</span>
+    </div>
+
+    <!-- Live indicator + FPS -->
+    @if (isRunning) {
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        LIVE
+      </div>
+      <div class="fps-overlay">
+        {{ camera().fps_current | number:'1.1-1' }} fps
+      </div>
+    }
+  </a>
+
+  <!-- Card body -->
+  <div class="card-body">
+    <div class="card-header">
+      <h4 class="camera-id">{{ camera().camera_id }}</h4>
+      <div class="card-actions">
+        @if (isStopped) {
+          <button mat-icon-button matTooltip="Iniciar" (click)="onStart()">
+            <mat-icon>play_arrow</mat-icon>
+          </button>
+        } @else if (isRunning) {
+          <button mat-icon-button matTooltip="Parar" (click)="onStop()">
+            <mat-icon>stop</mat-icon>
+          </button>
+        }
+        @if (isRestartable) {
+          <button mat-icon-button matTooltip="Reiniciar" (click)="onRestart()">
+            <mat-icon>restart_alt</mat-icon>
+          </button>
+        }
+        <button mat-icon-button matTooltip="Remover" (click)="onDelete()">
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Metrics row -->
+    <div class="metrics-row">
+      <app-metric-chip icon="speed" value="{{ camera().fps_current | number:'1.1-1' }}" unit="fps" />
+      <app-metric-chip icon="timer" value="{{ camera().detect_ms_avg | number:'1.0-0' }}" unit="ms" />
+      <app-metric-chip icon="people" [value]="camera().tracks_active" />
+    </div>
+
+    <!-- Error message -->
+    @if (camera().error_message) {
+      <p class="error-msg">{{ camera().error_message }}</p>
+    }
+
+    <!-- Last frame -->
+    <span class="last-frame">{{ camera().last_frame_at | relativeTime }}</span>
+  </div>
+</div>

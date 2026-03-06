@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amostra - Motor B2B Look-alike</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --bg-color: #0F172A;
+            --card-bg: #1E293B;
+            --text: #F8FAFC;
+            --text-muted: #94A3B8;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: var(--card-bg);
+            padding: 20px 40px;
+            border-bottom: 1px solid #334155;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 1px solid #334155;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        select,
+        button {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0F172A;
+            color: white;
+            font-size: 16px;
+            outline: none;
+        }
+
+        button {
+            background: var(--primary);
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #4338CA;
+        }
+
+        .results {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 24px;
+        }
+
+        .result-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            position: relative;
+            border: 1px solid #334155;
+            transition: transform 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .rank {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background: var(--primary);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .sim-bar {
+            height: 6px;
+            background: #334155;
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .sim-progress {
+            height: 100%;
+            background: #10B981;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #1E293B;
+            border: 1px solid #334155;
+            font-size: 12px;
+            margin-right: 8px;
+        }
+
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .login-modal.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #334155;
+            text-align: center;
+        }
+
+        .login-box input {
+            width: 100%;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+        }
+
+        .login-box button {
+            width: 100%;
+        }
+
+        .error {
+            color: #EF4444;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-box">
+            <h2 style="margin-top: 0">Acesso Restrito</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px">Faça login para utilizar a Inteligência B2B.</p>
+
+            <div id="loginError" class="error"></div>
+
+            <input type="email" id="email" value="admin@b2b.com" placeholder="E-mail">
+            <input type="password" id="password" value="12345" placeholder="Senha">
+            <button onclick="fazerLogin()">Entrar na Plataforma</button>
+        </div>
+    </div>
+
+    <div class="header">
+        <h1>🚀 B2B L-Akurat <span
+                style="font-size: 14px; background: rgba(79, 70, 229, 0.2); padding: 4px 8px; color: #818CF8; border-radius: 4px;">SaaS
+                Premium</span></h1>
+        <div style="display: flex; gap: 16px; align-items: center">
+            <span id="userName" style="color: var(--text-muted)"></span>
+            <button style="padding: 8px 16px; background: transparent; border: 1px solid #334155"
+                onclick="logout()">Sair</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2 style="margin-top: 0">Motor de Prosperação</h2>
+            <p style="color: var(--text-muted); margin-bottom: 24px">Selecione uma empresa já existente para
+                encontrarmos perfis gêmeos usando nossa IA preditiva.</p>
+
+            <div class="search-row">
+                <div class="input-group">
+                    <label>Empresa Âncora / Referência</label>
+                    <select id="empresaSelect">
+                        <option value="">Carregando bases...</option>
+                    </select>
+                </div>
+                <button onclick="buscarSimilares()" id="btnBuscar">Analisar e Encontrar</button>
+            </div>
+        </div>
+
+        <div class="results" id="resultados">
+            <!-- Cards renderizados via JS -->
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        let token = localStorage.getItem('b2b_token');
+
+        // Inicialização
+        if (token) {
+            document.getElementById('loginModal').classList.add('hidden');
+            carregarEmpresas();
+            carregarUsuario();
+        }
+
+        async function fazerLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+
+            try {
+                const req = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: pass })
+                });
+
+                const res = await req.json();
+
+                if (req.ok) {
+                    token = res.access_token;
+                    localStorage.setItem('b2b_token', token);
+                    document.getElementById('loginModal').classList.add('hidden');
+                    carregarUsuario();
+                    carregarEmpresas();
+                } else {
+                    document.getElementById('loginError').innerText = res.detail || "Erro no login";
+                }
+            } catch (e) {
+                document.getElementById('loginError').innerText = "Erro de conexão API. (FastAPI está rodando?)";
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('b2b_token');
+            location.reload();
+        }
+
+        async function carregarUsuario() {
+            const resp = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (resp.ok) {
+                const user = await resp.json();
+                document.getElementById('userName').innerText = 'Logado como: ' + user.name;
+            }
+        }
+
+        async function carregarEmpresas() {
+            const select = document.getElementById('empresaSelect');
+            const resp = await fetch(`${API_URL}/empresas`, { headers: { 'Authorization': `Bearer ${token}` } });
+
+            if (resp.ok) {
+                const dados = await resp.json();
+                select.innerHTML = '<option value="">-- Selecione uma âncora --</option>';
+                dados.forEach(d => {
+                    select.innerHTML += `<option value="${d.id}">${d.nome_empresa} (CNAE: ${d.cnae})</option>`;
+                });
+            }
+        }
+
+        async function buscarSimilares() {
+            const val = document.getElementById('empresaSelect').value;
+            if (!val) return;
+
+            const btn = document.getElementById('btnBuscar');
+            btn.innerText = 'Processando...';
+
+            const resp = await fetch(`${API_URL}/lookalike`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ anchor_id: parseInt(val), top_n: 6 })
+            });
+
+            btn.innerText = 'Analisar e Encontrar';
+
+            if (resp.ok) {
+                const leads = await resp.json();
+                renderResultados(leads);
+            }
+        }
+
+        function renderResultados(leads) {
+            const resDiv = document.getElementById('resultados');
+            resDiv.innerHTML = '';
+
+            leads.forEach((l, i) => {
+                const per = Math.max(0, Math.min(100, Math.round(100 - (l.distancia_score * 50))));
+                let rankColor = i === 0 ? '#F59E0B' : 'var(--primary)';
+
+                resDiv.innerHTML += `
+          <div class="result-card">
+            <div class="rank" style="background: ${rankColor}">${i + 1}</div>
+            <h3 style="margin-top:0; margin-bottom: 5px">${l.nome_empresa}</h3>
+            <p style="color: var(--text-muted); font-size: 14px; margin-top: 0">CNAE: ${l.cnae}</p>
+            
+            <div style="margin-top: 16px">
+              <span class="badge">Fat Nível ${l.faturamento_ordinal}</span>
+              <span class="badge">Func Nível ${l.funcionarios_ordinal}</span>
+            </div>
+
+            <div style="margin-top: 24px; padding: 12px; background: #0F172A; border-radius: 8px">
+              <div style="display: flex; justify-content: space-between; font-size: 14px;">
+                <span>Match Score</span>
+                <strong style="color: #10B981">${per}%</strong>
+              </div>
+              <div class="sim-bar">
+                <div class="sim-progress" style="width: ${per}%"></div>
+              </div>
+            </div>
+            
+            <button style="width: 100%; margin-top: 20px; background: #334155">Revelar Contato Pessoal</button>
+          </div>
+        `;
+            });
+        }
+    </script>
+</body>
+
+</html>

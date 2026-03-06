@@ -1,0 +1,224 @@
+<aside class="sidebar">
+  <a [routerLink]="brandLink" class="brand">
+    <div class="brand-mark">
+      <img src="favicon.png" alt="Freedom" class="brand-logo" />
+    </div>
+    <div class="brand-copy">
+      <span class="brand-kicker">Freedom IA Platform</span>
+      <strong>{{ clientCtx.context()?.display_name ?? 'Freedom' }}</strong>
+      <small>{{ isOffice ? 'Operação Office em tempo real' : 'Operação central' }}</small>
+    </div>
+  </a>
+
+  <div class="sidebar-scroll">
+    <section class="nav-section">
+      <div class="section-label">Monitoramento</div>
+      <nav class="nav-list">
+        @for (item of navigationItems; track item.id) {
+          @if (item.expandable) {
+            <div class="nav-block">
+              <button
+                type="button"
+                class="nav-item nav-item--expandable"
+                [class.is-active]="isItemActive(item)"
+                [class.is-open]="isSectionExpanded(item.id)"
+                (click)="onExpandableItemClick(item)">
+                <span class="nav-item-main">
+                  <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                  <span class="nav-copy">
+                    <span class="nav-title">{{ item.label }}</span>
+                    <span class="nav-description">{{ item.description }}</span>
+                  </span>
+                </span>
+
+                <span class="nav-item-side">
+                  @if (itemBadge(item.id); as badge) {
+                    <span class="nav-badge">{{ badge }}</span>
+                  }
+                  <mat-icon class="nav-chevron">expand_more</mat-icon>
+                </span>
+              </button>
+
+              @if (item.id === 'cameras' && isSectionExpanded('cameras')) {
+                <div class="preview-panel">
+                  <div class="preview-header">
+                    <div>
+                      <span class="preview-kicker">Câmeras cadastradas</span>
+                      <p class="preview-caption">Selecione uma câmera para abrir detalhes e status.</p>
+                    </div>
+                    <a [routerLink]="R.cameras" class="preview-link">Ver todas</a>
+                  </div>
+
+                  @if (cameraPreviewItems().length > 0) {
+                    <div class="preview-list">
+                      @for (camera of cameraPreviewItems(); track camera.camera_id) {
+                        <a
+                          class="preview-item"
+                          [routerLink]="R.camera(camera.camera_id)"
+                          routerLinkActive="is-active"
+                          [routerLinkActiveOptions]="{ exact: true }">
+                          <span
+                            class="preview-avatar"
+                            [style.border-color]="camera.state | cameraStateColor">
+                            <mat-icon>videocam</mat-icon>
+                          </span>
+
+                          <span class="preview-copy">
+                            <span class="preview-title">{{ camera.camera_id }}</span>
+                            <span class="preview-subtitle">
+                              <span
+                                class="status-dot"
+                                [style.background]="camera.state | cameraStateColor"></span>
+                              {{ camera.state | cameraStateLabel }}
+                              <span class="preview-separator">·</span>
+                              {{ cameraMetric(camera) }}
+                            </span>
+                          </span>
+
+                          <span class="preview-pill">
+                            <mat-icon>groups</mat-icon>
+                            {{ camera.tracks_active }}
+                          </span>
+                        </a>
+                      }
+                    </div>
+                  } @else {
+                    <div class="preview-empty">
+                      <mat-icon>videocam_off</mat-icon>
+                      <span>Nenhuma câmera cadastrada ainda.</span>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (item.id === 'presence' && isSectionExpanded('presence')) {
+                <div class="preview-panel">
+                  <div class="preview-header">
+                    <div>
+                      <span class="preview-kicker">Top 5 áreas com presença</span>
+                      <p class="preview-caption">Ranking calculado pelos últimos eventos de entrada.</p>
+                    </div>
+                    <a [routerLink]="R.presenca" class="preview-link">Ver mais</a>
+                  </div>
+
+                  @if (presencePreviewItems().length > 0) {
+                    <div class="preview-list">
+                      @for (zone of presencePreviewItems(); track zone.zone_id + zone.camera_id; let index = $index) {
+                        <a
+                          class="preview-item preview-item--presence"
+                          [routerLink]="R.presenca"
+                          routerLinkActive="is-active"
+                          [routerLinkActiveOptions]="{ exact: true }">
+                          <span class="preview-rank">{{ index + 1 }}</span>
+
+                          <span class="preview-copy">
+                            <span class="preview-title">{{ zone.zone_id }}</span>
+                            <span class="preview-subtitle">
+                              {{ zone.camera_id }}
+                              <span class="preview-separator">·</span>
+                              {{ zone.last_seen | relativeTime }}
+                            </span>
+                          </span>
+
+                          <span class="preview-pill preview-pill--presence">
+                            {{ zone.entries }}
+                          </span>
+                        </a>
+                      }
+                    </div>
+                  } @else {
+                    <div class="preview-empty">
+                      <mat-icon>badge</mat-icon>
+                      <span>As áreas com maior fluxo vão aparecer aqui.</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          } @else {
+            <a
+              [routerLink]="item.path"
+              class="nav-item"
+              [class.is-active]="isItemActive(item)">
+              <span class="nav-item-main">
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                <span class="nav-copy">
+                  <span class="nav-title">{{ item.label }}</span>
+                  <span class="nav-description">{{ item.description }}</span>
+                </span>
+              </span>
+
+              @if (itemBadge(item.id); as badge) {
+                <span class="nav-badge">{{ badge }}</span>
+              }
+            </a>
+          }
+        }
+      </nav>
+    </section>
+
+    <section class="nav-section">
+      <div class="section-label">Conta</div>
+      <nav class="nav-list">
+        @for (item of accountItems; track item.id) {
+          <a
+            [routerLink]="item.path"
+            class="nav-item"
+            [class.is-active]="isItemActive(item)">
+            <span class="nav-item-main">
+              <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+              <span class="nav-copy">
+                <span class="nav-title">{{ item.label }}</span>
+                <span class="nav-description">{{ item.description }}</span>
+              </span>
+            </span>
+          </a>
+        }
+
+        @if (auth.isAdmin()) {
+          @for (item of adminItems; track item.id) {
+            <a
+              [routerLink]="item.path"
+              class="nav-item"
+              [class.is-active]="isItemActive(item)">
+              <span class="nav-item-main">
+                <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+                <span class="nav-copy">
+                  <span class="nav-title">{{ item.label }}</span>
+                  <span class="nav-description">{{ item.description }}</span>
+                </span>
+              </span>
+            </a>
+          }
+        }
+      </nav>
+    </section>
+
+    <section class="nav-section">
+      <div class="section-label">Infraestrutura</div>
+      <nav class="nav-list">
+        @for (item of systemItems; track item.id) {
+          <a
+            [routerLink]="item.path"
+            class="nav-item"
+            [class.is-active]="isItemActive(item)">
+            <span class="nav-item-main">
+              <mat-icon class="nav-icon">{{ item.icon }}</mat-icon>
+              <span class="nav-copy">
+                <span class="nav-title">{{ item.label }}</span>
+                <span class="nav-description">{{ item.description }}</span>
+              </span>
+            </span>
+          </a>
+        }
+      </nav>
+    </section>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="footer-card">
+      <span class="footer-label">Versão</span>
+      <span class="version-tag">v3.2.0</span>
+    </div>
+  </div>
+</aside>

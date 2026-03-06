@@ -1,0 +1,435 @@
+<div class="breadcrumb">
+  <a [routerLink]="R.cameras">Câmeras</a>
+  <mat-icon>chevron_right</mat-icon>
+  <span>{{ cameraId() }}</span>
+</div>
+
+@if (camera(); as cam) {
+  <header class="camera-header">
+    <div>
+      <p class="camera-kicker">{{ isOfficeCamera() ? 'Office runtime' : 'Camera runtime' }}</p>
+      <h1>{{ cam.camera_id }}</h1>
+      <p class="camera-subtitle">
+        Backend {{ cam.backend }} · {{ cam.state | cameraStateLabel }} ·
+        uptime {{ cam.uptime_sec | uptime }}
+      </p>
+    </div>
+
+    <div class="camera-header-badges">
+      <span class="header-pill">
+        <mat-icon>bolt</mat-icon>
+        {{ eventsTotal() }} eventos
+      </span>
+      <span class="header-pill" [class.header-pill--active]="isLive()">
+        <mat-icon>{{ isLive() ? 'sensors' : 'sensors_off' }}</mat-icon>
+        {{ isLive() ? 'stream ao vivo' : 'snapshot sob demanda' }}
+      </span>
+    </div>
+  </header>
+
+  <div class="dashboard-grid">
+    <section class="video-card">
+      <div class="video-frame" #videoFrame>
+        @if (displayUrl() && !snapshotError) {
+          <img
+            class="video-img"
+            [src]="displayUrl()"
+            alt="Preview"
+            (load)="onSnapshotLoad()"
+            (error)="onSnapshotError()" />
+
+          @if (isLive()) {
+            <div class="live-indicator">
+              <span class="live-dot"></span>
+              LIVE
+            </div>
+          }
+        }
+
+        @if (!displayUrl() || snapshotError) {
+          <div class="preview-gradient">
+            @if (snapshotError) {
+              <mat-icon class="preview-icon">videocam_off</mat-icon>
+              <span class="preview-text">Sem sinal</span>
+            } @else {
+              <div class="preview-spinner"></div>
+              <span class="preview-text">Conectando...</span>
+            }
+          </div>
+        }
+
+        <div class="badge-overlay">
+          <app-status-badge
+            [label]="cam.state | cameraStateLabel"
+            [color]="cam.state | cameraStateColor" />
+        </div>
+      </div>
+
+      <div class="video-toolbar">
+        <div class="toolbar-left">
+          @if (isStopped()) {
+            <button mat-icon-button matTooltip="Iniciar" (click)="onStart()">
+              <mat-icon>play_arrow</mat-icon>
+            </button>
+          }
+          @if (isRunning()) {
+            <button mat-icon-button matTooltip="Parar" (click)="onStop()">
+              <mat-icon>pause</mat-icon>
+            </button>
+          }
+          @if (isRestartable()) {
+            <button mat-icon-button matTooltip="Reiniciar" (click)="onRestart()">
+              <mat-icon>restart_alt</mat-icon>
+            </button>
+          }
+          <button mat-icon-button matTooltip="Configurações" (click)="onEdit()">
+            <mat-icon>settings</mat-icon>
+          </button>
+        </div>
+
+        <div class="toolbar-right">
+          <button mat-icon-button matTooltip="Tela cheia" (click)="onToggleFullscreen()">
+            <mat-icon>{{ isFullscreen() ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+          </button>
+          <button mat-button class="btn-false-positive" (click)="onReportFalsePositive()">
+            <mat-icon>report_problem</mat-icon>
+            Falso Positivo
+          </button>
+        </div>
+      </div>
+
+      <div class="section-fold section-fold--timeline">
+        <div class="section-fold__copy">
+          <span class="section-fold__kicker">Camada de investigação</span>
+          <strong>Timeline e snapshots</strong>
+          <span>{{ timelineExpanded() ? 'Arraste a agulha para sincronizar o foco temporal.' : timelineSummary() }}</span>
+        </div>
+
+        <button mat-stroked-button (click)="toggleTimelineExpanded()">
+          <mat-icon>{{ timelineExpanded() ? 'unfold_less' : 'unfold_more' }}</mat-icon>
+          {{ timelineExpanded() ? 'Recolher' : 'Expandir' }}
+        </button>
+      </div>
+
+      @if (timelineExpanded()) {
+        <app-camera-event-timeline
+          class="video-timeline-panel"
+          [events]="events()"
+          (evidenceOpen)="openEvidence($event)"
+          (selectionChange)="onTimelineSelection($event)" />
+      } @else {
+        <div class="section-fold-note section-fold-note--timeline">
+          <mat-icon>timeline</mat-icon>
+          <span>{{ timelineSummary() }}</span>
+        </div>
+      }
+    </section>
+
+    <aside class="kpi-panel">
+      <div class="summary-grid">
+        <div class="kpi-card kpi-card--metric">
+          <div class="kpi-icon kpi-icon--blue">
+            <mat-icon>groups</mat-icon>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ uniquePersons() }}</span>
+            <span class="kpi-label">Pessoas distintas</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--metric">
+          <div class="kpi-icon kpi-icon--yellow">
+            <mat-icon>notifications_active</mat-icon>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ eventsTotal() }}</span>
+            <span class="kpi-label">Eventos persistidos</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--metric">
+          <div class="kpi-icon kpi-icon--green">
+            <mat-icon>photo_camera_back</mat-icon>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ evidenceCount() }}</span>
+            <span class="kpi-label">Snapshots úteis</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--metric">
+          <div class="kpi-icon kpi-icon--red">
+            <mat-icon>warning</mat-icon>
+          </div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ alertCount() }}</span>
+            <span class="kpi-label">Alertas na página</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ops-card">
+        <div class="ops-card__header">
+          <div>
+            <h3>Painel operacional</h3>
+            <p>Indicadores para validar stream, persistência e resposta do runtime.</p>
+          </div>
+          <span class="ops-pill" [class.ops-pill--live]="isLive()">
+            {{ isLive() ? 'monitoramento ativo' : 'modo snapshot' }}
+          </span>
+        </div>
+
+        <dl class="ops-grid">
+          <div class="ops-item">
+            <dt>Tracks ativos</dt>
+            <dd>{{ cam.tracks_active }}</dd>
+          </div>
+          <div class="ops-item">
+            <dt>FPS atual</dt>
+            <dd>{{ cam.fps_current | number:'1.1-1' }}</dd>
+          </div>
+          <div class="ops-item">
+            <dt>FPS target</dt>
+            <dd>{{ cam.fps_target }}</dd>
+          </div>
+          <div class="ops-item">
+            <dt>Latência</dt>
+            <dd>{{ cam.detect_ms_avg | number:'1.0-0' }} ms</dd>
+          </div>
+          <div class="ops-item">
+            <dt>Retries</dt>
+            <dd>{{ cam.retry_count }}</dd>
+          </div>
+          <div class="ops-item">
+            <dt>Eventos de presença</dt>
+            <dd>{{ presenceCount() }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="contract-card">
+        <div class="contract-header">
+          <div>
+            <h3>Contrato ativo</h3>
+            <p>
+              @if (isOfficeCamera()) {
+                Presença, permanência esparsa e snapshot de evidência.
+              } @else {
+                Fluxo legado de eventos por câmera.
+              }
+            </p>
+          </div>
+          @if (latestPresenceUpdate(); as lastPresence) {
+            <span class="contract-pill">
+              {{ formatDuration(lastPresence.duration_sec) }}
+            </span>
+          }
+        </div>
+
+        <dl class="config-list">
+          <div class="config-item">
+            <dt>Backend</dt>
+            <dd>{{ cam.backend }}</dd>
+          </div>
+          <div class="config-item">
+            <dt>FPS target</dt>
+            <dd>{{ cam.fps_target }}</dd>
+          </div>
+          <div class="config-item">
+            <dt>Retries</dt>
+            <dd>{{ cam.retry_count }}</dd>
+          </div>
+          <div class="config-item">
+            <dt>Modo de stream</dt>
+            <dd>{{ isLive() ? 'ao vivo' : 'snapshot sob demanda' }}</dd>
+          </div>
+          <div class="config-item">
+            <dt>Evidência destacada</dt>
+            <dd>{{ displayEvidenceEvent() ? formatCompactTimestamp(displayEvidenceEvent()?.created_at) : 'aguardando' }}</dd>
+          </div>
+        </dl>
+      </div>
+
+      @if (displayEvidenceEvent(); as evidenceEvent) {
+        <div class="evidence-card">
+          <div class="evidence-card-header">
+            <div>
+              <h3>{{ evidenceCardTitle() }}</h3>
+              <p>{{ eventTypeLabel(evidenceEvent.type) }} · {{ evidenceEvent.created_at | date:'dd/MM HH:mm' }}</p>
+            </div>
+            @if (focusedTimelineEvidenceEvent()) {
+              <span class="evidence-sync-pill">
+                <mat-icon>timeline</mat-icon>
+                timeline
+              </span>
+            }
+            <button mat-stroked-button (click)="openEvidence(evidenceEvent.evidence_path)">
+              <mat-icon>open_in_new</mat-icon>
+              Abrir
+            </button>
+          </div>
+
+          @if (evidenceUrl(evidenceEvent.evidence_path); as evidenceSrc) {
+            <button class="evidence-preview" type="button" (click)="openEvidence(evidenceEvent.evidence_path)">
+              <img [src]="evidenceSrc" alt="Snapshot de evidência" />
+            </button>
+          }
+
+          <div class="evidence-meta">
+            <strong>{{ detailTitle(evidenceEvent) }}</strong>
+            <span>{{ detailMeta(evidenceEvent) }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="evidence-card evidence-card--empty">
+          <mat-icon>photo_camera_back</mat-icon>
+          <div>
+            <h3>{{ evidenceCardTitle() }}</h3>
+            <p>Os próximos alertas e entradas relevantes vão aparecer aqui com snapshot persistido.</p>
+          </div>
+        </div>
+      }
+
+      @if (cam.error_message) {
+        <div class="error-box">
+          <mat-icon>error_outline</mat-icon>
+          {{ cam.error_message }}
+        </div>
+      }
+    </aside>
+  </div>
+
+  <section class="section-card events-section">
+    <div class="events-header">
+      <div>
+        <h2>Eventos recentes</h2>
+        <p>
+          @if (isOfficeCamera()) {
+            Linha do tempo da câmera com permanência e snapshots ligados ao contrato office.
+          } @else {
+            Eventos persistidos para este feed.
+          }
+        </p>
+      </div>
+
+      <div class="events-actions">
+        <button mat-stroked-button (click)="toggleEventsExpanded()">
+          <mat-icon>{{ eventsExpanded() ? 'unfold_less' : 'unfold_more' }}</mat-icon>
+          {{ eventsExpanded() ? 'Recolher tabela' : 'Expandir tabela' }}
+        </button>
+
+        @if (eventsExpanded()) {
+          <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+            <mat-icon matPrefix>search</mat-icon>
+            <input
+              matInput
+              placeholder="Filtrar esta página"
+              [value]="searchTerm()"
+              (input)="searchTerm.set($any($event.target).value)" />
+          </mat-form-field>
+
+          <button mat-stroked-button (click)="onExportCsv()">
+            <mat-icon>download</mat-icon>
+            Exportar CSV
+          </button>
+
+          @if (isRunning()) {
+            <button mat-stroked-button color="warn" (click)="onStop()">
+              <mat-icon>stop</mat-icon>
+              Parar
+            </button>
+          }
+        }
+      </div>
+    </div>
+
+    @if (isOfficeCamera()) {
+      <div class="contract-banner">
+        <mat-icon>policy</mat-icon>
+        <span>
+          `presence.updated` agora entra de forma esparsa no banco e os eventos-chave podem abrir snapshot persistido.
+        </span>
+      </div>
+    }
+
+    @if (!eventsExpanded()) {
+      <div class="section-fold-note">
+        <mat-icon>table_rows</mat-icon>
+        <span>{{ eventsSummary() }}</span>
+      </div>
+    } @else if (events().length > 0 && filteredEvents().length > 0) {
+      <div class="events-table-wrapper">
+        <table mat-table [dataSource]="filteredEvents()" class="events-mat-table">
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let evt">
+              <mat-chip [class]="eventStatusClass(evt)">
+                <mat-icon class="chip-status-icon">{{ eventTypeIcon(evt.type) }}</mat-icon>
+                {{ eventStatusLabel(evt) }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="type">
+            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+            <td mat-cell *matCellDef="let evt">
+              <div class="event-type-line">
+                <mat-icon>{{ eventTypeIcon(evt.type) }}</mat-icon>
+                <span>{{ eventTypeLabel(evt.type) }}</span>
+              </div>
+              <span class="event-type-sub">
+                {{ evt.alert_type ?? evt.severity ?? evt.type }}
+              </span>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="details">
+            <th mat-header-cell *matHeaderCellDef>Contexto</th>
+            <td mat-cell *matCellDef="let evt">
+              <div class="event-detail">
+                <strong>{{ detailTitle(evt) }}</strong>
+                <span>{{ detailMeta(evt) }}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="evidence">
+            <th mat-header-cell *matHeaderCellDef>Evidência</th>
+            <td mat-cell *matCellDef="let evt">
+              @if (evt.evidence_path) {
+                <button mat-stroked-button class="table-action" (click)="openEvidence(evt.evidence_path)">
+                  <mat-icon>image</mat-icon>
+                  Ver snapshot
+                </button>
+              } @else {
+                <span class="table-muted">—</span>
+              }
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="created_at">
+            <th mat-header-cell *matHeaderCellDef>Data</th>
+            <td mat-cell *matCellDef="let evt">
+              {{ evt.created_at | date:'dd/MM/yyyy HH:mm:ss' }}
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="eventColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: eventColumns;"></tr>
+        </table>
+      </div>
+
+      <mat-paginator
+        [length]="eventsTotal()"
+        [pageSize]="eventsPageSize()"
+        [pageIndex]="eventsPageIndex()"
+        [pageSizeOptions]="[10, 20, 50]"
+        (page)="onEventsPage($event)"
+        showFirstLastButtons />
+    } @else if (events().length > 0) {
+      <p class="no-events">Nenhum evento desta página combina com o filtro informado.</p>
+    } @else {
+      <p class="no-events">Nenhum evento registrado para esta câmera.</p>
+    }
+  </section>
+}

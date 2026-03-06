@@ -1,0 +1,83 @@
+<div class="page-header">
+  <h2>Saúde do Sistema</h2>
+</div>
+
+@if (health(); as h) {
+  <!-- KPI gauges row -->
+  <div class="kpi-row">
+    <app-system-gauge
+      [value]="h.cpu_percent"
+      title="CPU"
+      unit="%" />
+
+    <app-system-gauge
+      [value]="ramPercent"
+      title="RAM"
+      unit="%"
+      [warnThreshold]="80" />
+
+    @if (h.gpu_util_percent !== null) {
+      <app-system-gauge
+        [value]="h.gpu_util_percent!"
+        title="GPU"
+        unit="%"
+        [warnThreshold]="85" />
+    }
+
+    @if (h.vram_used_mb !== null && h.vram_total_mb !== null) {
+      <app-system-gauge
+        [value]="(h.vram_used_mb! / h.vram_total_mb!) * 100"
+        title="VRAM"
+        unit="%"
+        [warnThreshold]="85" />
+    }
+  </div>
+
+  <!-- Details row -->
+  <div class="details-row">
+    <!-- GPU card -->
+    @if (h.gpu_util_percent !== null) {
+      <app-gpu-card
+        [vramUsed]="h.vram_used_mb ?? 0"
+        [vramTotal]="h.vram_total_mb ?? 1"
+        [temp]="h.gpu_temp_celsius ?? 0"
+        [utilization]="h.gpu_util_percent!" />
+    }
+
+    <!-- Disk card -->
+    <div class="info-card">
+      <div class="info-header">
+        <mat-icon>storage</mat-icon>
+        <span class="info-title">Disco</span>
+      </div>
+      <div class="disk-bar-track">
+        <div class="disk-bar-fill" [style.width.%]="diskPercent"></div>
+      </div>
+      <span class="info-detail">
+        {{ h.disk_used_gb | number:'1.1-1' }} / {{ h.disk_total_gb | number:'1.1-1' }} GB
+      </span>
+    </div>
+
+    <!-- RAM card -->
+    <div class="info-card">
+      <div class="info-header">
+        <mat-icon>developer_board</mat-icon>
+        <span class="info-title">Memória</span>
+      </div>
+      <span class="info-kpi">{{ h.ram_used_mb | number:'1.0-0' }} MB</span>
+      <span class="info-detail">de {{ h.ram_total_mb | number:'1.0-0' }} MB</span>
+    </div>
+
+    <!-- Uptime card -->
+    <div class="info-card">
+      <div class="info-header">
+        <mat-icon>schedule</mat-icon>
+        <span class="info-title">Uptime</span>
+      </div>
+      <span class="info-kpi">{{ h.uptime_hours | number:'1.1-1' }}h</span>
+      <span class="info-detail">{{ h.cameras.length }} câmeras ativas</span>
+    </div>
+  </div>
+} @else if (loading()) {
+  <p class="loading-text">Carregando dados de saúde...</p>
+}

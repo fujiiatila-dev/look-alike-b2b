@@ -1,0 +1,117 @@
+:host {
+  display: block;
+}
+
+.panel-card {
+  background: var(--edge-surface);
+  border: 1px solid var(--edge-border);
+  border-radius: var(--fd-radius-lg);
+  box-shadow: var(--fd-shadow-1);
+  padding: 1rem;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-family: var(--font-family);
+    font-size: 1.45rem;
+    letter-spacing: 0.04em;
+    color: var(--edge-text);
+  }
+}
+
+.metric-grid {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.8rem;
+    align-items: baseline;
+
+    span {
+      color: var(--edge-text);
+      font-family: var(--font-family);
+      font-weight: 500;
+      font-size: 0.98rem;
+    }
+  }
+}
+
+.metric-values {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  small {
+    color: var(--edge-muted);
+    font-size: 0.74rem;
+  }
+}
+
+.progress-grid {
+  display: grid;
+  gap: 0.35rem;
+}
+
+:host ::ng-deep .mat-mdc-progress-bar {
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+:host ::ng-deep .mat-mdc-progress-bar .mdc-linear-progress__bar-inner {
+  border-color: transparent;
+}
+
+:host ::ng-deep .mat-mdc-progress-bar:nth-child(1) .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, #4E61F6, #818cf8);
+}
+
+:host ::ng-deep .mat-mdc-progress-bar:nth-child(2) .mdc-linear-progress__bar-inner {
+  background: linear-gradient(90deg, #22C55E, #86efac);
+}
+
+.quality-footer {
+  margin-top: 1rem;
+  border-top: 1px solid var(--edge-border);
+  padding-top: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.8rem;
+
+  small {
+    display: block;
+    color: var(--edge-muted);
+    font-size: 0.79rem;
+  }
+
+  strong {
+    color: var(--edge-text);
+    font-size: 1.5rem;
+    font-family: var(--font-family);
+  }
+
+  span {
+    margin-left: 0.35rem;
+    color: #16A34A;
+    font-size: 1.15rem;
+    font-family: var(--font-family);
+  }
+}
+
+.quality-badge {
+  text-align: right;
+
+  strong {
+    display: block;
+    color: #16A34A;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+  }
+
+  small {
+    color: var(--edge-muted);
+    font-size: 0.76rem;
+  }
+}

@@ -1,0 +1,73 @@
+<div class="container">
+    <header>
+        <h1>Importar Novo Evento (Manual)</h1>
+        <a [routerLink]="R.events" class="btn-secondary">&larr; Cancelar e Voltar</a>
+    </header>
+
+    <div class="controls-row">
+        <p style="color: var(--edge-muted); margin: 0; font-size: 14px; width: 60%; line-height: 1.5;">
+            Selecione um arquivo de vídeo (X264) da pasta <code>data_v1/data/</code> para criar um evento. Na V1,
+            arquivos grandes só entram por backend batch, esta tela lista o que já está na máquina.
+        </p>
+
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar arquivo...</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. shoplifting">
+        </mat-form-field>
+    </div>
+
+    <div class="table-container">
+        <div *ngIf="loading()" class="loading-overlay">
+            Buscando arquivos na pasta...
+        </div>
+
+        <table mat-table [dataSource]="filteredFiles()">
+
+            <ng-container matColumnDef="thumbnail">
+                <th mat-header-cell *matHeaderCellDef style="width: 140px;"> Thumbnail </th>
+                <td mat-cell *matCellDef="let file">
+                    <div
+                        style="width: 112px; height: 63px; overflow: hidden; border-radius: 4px; background: #1f2937; margin: 8px 0; border: 1px solid var(--edge-border);">
+                        <img [src]="getThumbUrl(file.filename)" style="width: 100%; height: 100%; object-fit: cover;"
+                            loading="lazy" />
+                    </div>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="filename">
+                <th mat-header-cell *matHeaderCellDef> Nome do Arquivo </th>
+                <td mat-cell *matCellDef="let file" class="source-cell">
+                    <strong>{{ file.filename }}</strong>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="size">
+                <th mat-header-cell *matHeaderCellDef> Tamanho </th>
+                <td mat-cell *matCellDef="let file" class="mono-id"> {{ formatBytes(file.size) }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Data de Modificação </th>
+                <td mat-cell *matCellDef="let file"> {{ file.modified * 1000 | date:'dd/MM/yyyy HH:mm:ss' }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef> Ação </th>
+                <td mat-cell *matCellDef="let file">
+                    <button class="action-link" [disabled]="savingItem() !== null" (click)="createEvent(file.filename)">
+                        {{ savingItem() === file.filename ? 'Importando...' : 'Criar Evento &rarr;' }}
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-data" colspan="5">
+                    Nenhum vídeo encontrado.
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

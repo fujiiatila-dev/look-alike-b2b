@@ -1,0 +1,42 @@
+<mat-card class="table-card" appearance="outlined">
+  <table mat-table [dataSource]="pagedRows" class="run-table">
+    <ng-container matColumnDef="timestampLabel">
+      <th mat-header-cell *matHeaderCellDef>Timestamps</th>
+      <td mat-cell *matCellDef="let row">{{ row.timestampLabel }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="runLabel">
+      <th mat-header-cell *matHeaderCellDef>Run</th>
+      <td mat-cell *matCellDef="let row">
+        <strong>{{ row.runLabel }}</strong>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="detectionsLabel">
+      <th mat-header-cell *matHeaderCellDef>Deteccoes (IoU)</th>
+      <td mat-cell *matCellDef="let row">{{ row.detectionsLabel }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="overlapLabel">
+      <th mat-header-cell *matHeaderCellDef>Overlap</th>
+      <td mat-cell *matCellDef="let row">{{ row.overlapLabel }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="delayLabel">
+      <th mat-header-cell *matHeaderCellDef>Delay</th>
+      <td mat-cell *matCellDef="let row">{{ row.delayLabel }}</td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+  </table>
+
+  <mat-paginator
+    [length]="runRows.length"
+    [pageIndex]="pageIndex"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[2, 4, 8]"
+    (page)="onPageChange($event)"
+    aria-label="Run comparison pagination"
+  ></mat-paginator>
+</mat-card>

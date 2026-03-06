@@ -1,0 +1,194 @@
+.users-page {
+  max-width: 1000px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+// ── Register Card ──
+.register-card {
+  background: var(--edge-surface);
+  border: 1px solid var(--edge-border);
+  border-radius: var(--fd-radius-md);
+  box-shadow: var(--fd-shadow-1);
+  padding: 1.5rem;
+
+  h3 {
+    font: var(--text-h3);
+    color: var(--edge-text);
+    margin: 0 0 1rem;
+  }
+}
+
+.register-form {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr) auto;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.register-btn {
+  height: 56px;
+  background: var(--fd-primary) !important;
+  color: var(--fd-primary-fg) !important;
+  font-weight: 600;
+  border-radius: var(--fd-radius-sm);
+  white-space: nowrap;
+  padding: 0 1.25rem;
+
+  &:hover:not(:disabled) {
+    background: var(--fd-primary-hover) !important;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+// ── Users Card ──
+.users-card {
+  background: var(--edge-surface);
+  border: 1px solid var(--edge-border);
+  border-radius: var(--fd-radius-md);
+  box-shadow: var(--fd-shadow-1);
+  padding: 1.5rem;
+
+  h3 {
+    font: var(--text-h3);
+    color: var(--edge-text);
+    margin: 0 0 1rem;
+  }
+}
+
+.loading-text,
+.empty-text {
+  color: var(--edge-muted);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+// ── Table ──
+.users-table {
+  display: grid;
+}
+
+.table-header {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 0.8fr 0.8fr 0.8fr 0.7fr;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid var(--edge-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--edge-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 0.8fr 0.8fr 0.8fr 0.7fr;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--edge-border);
+  font-size: 0.85rem;
+  align-items: center;
+  color: var(--edge-text);
+  transition: background var(--fd-transition-fast) ease;
+
+  &:hover {
+    background: #F9FAFB;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.user-email {
+  color: var(--edge-muted);
+}
+
+.user-date {
+  color: var(--edge-muted);
+  font-size: 0.8rem;
+}
+
+.role-badge {
+  display: inline-flex;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(78, 97, 246, 0.08);
+  color: #4E61F6;
+}
+
+.role-admin {
+  background: rgba(255, 213, 0, 0.12);
+  color: #B38600;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  margin-right: 0.3rem;
+
+  &.active {
+    background: #22C55E;
+  }
+
+  &.inactive {
+    background: #D1D5DB;
+  }
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.delete-btn {
+  color: #DC2626;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &:hover {
+    background: rgba(220, 38, 38, 0.08);
+  }
+}
+
+// ── Responsive ──
+@media (max-width: 900px) {
+  .register-form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .register-btn {
+    grid-column: span 2;
+    height: 44px;
+  }
+
+  .table-header {
+    display: none;
+  }
+
+  .table-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+}

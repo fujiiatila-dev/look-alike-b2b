@@ -1,0 +1,31 @@
+<mat-card class="panel-card" appearance="outlined">
+  <h2>METRICAS DA CORRELACAO</h2>
+
+  <section class="metric-grid" *ngFor="let metric of metricRows; trackBy: trackByMetricId">
+    <header>
+      <span>{{ metric.label }}</span>
+      <div class="metric-values">
+        <small>Baseline {{ metric.baselineLabel }}</small>
+        <small>Refinado {{ metric.refinedLabel }}</small>
+      </div>
+    </header>
+
+    <div class="progress-grid">
+      <mat-progress-bar mode="determinate" [value]="metric.baselineProgress"></mat-progress-bar>
+      <mat-progress-bar mode="determinate" [value]="metric.refinedProgress"></mat-progress-bar>
+    </div>
+  </section>
+
+  <footer class="quality-footer">
+    <div>
+      <small>Quality Score</small>
+      <strong>{{ panel.qualityBaseline }}</strong>
+      <span>{{ panel.qualityRefined }}</span>
+    </div>
+
+    <div class="quality-badge">
+      <strong>{{ panel.statusLabel }}</strong>
+      <small>{{ panel.qualityDeltaLabel }} MELHORADO</small>
+    </div>
+  </footer>
+</mat-card>

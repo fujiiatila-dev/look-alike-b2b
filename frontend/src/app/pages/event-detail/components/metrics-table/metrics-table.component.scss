@@ -1,0 +1,55 @@
+:host {
+  display: block;
+}
+
+.table-card {
+  background: var(--edge-surface);
+  border: 1px solid var(--edge-border);
+  border-radius: var(--fd-radius-lg);
+  box-shadow: var(--fd-shadow-1);
+  padding: 0.4rem;
+  overflow: hidden;
+}
+
+.run-table {
+  width: 100%;
+  background: transparent;
+
+  .mat-mdc-header-row {
+    background: #FAFBFB;
+    height: 2.5rem;
+  }
+
+  .mat-mdc-header-cell {
+    color: var(--edge-muted);
+    font-size: 0.73rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-bottom: 1px solid var(--edge-border);
+  }
+
+  .mat-mdc-row {
+    height: 3.2rem;
+    transition: background-color 140ms ease;
+  }
+
+  .mat-mdc-row:hover {
+    background: #F3F4F6;
+  }
+
+  .mat-mdc-cell {
+    color: var(--edge-text);
+    border-bottom: 1px solid var(--edge-border);
+    font-size: 0.84rem;
+  }
+}
+
+:host ::ng-deep .mat-mdc-paginator {
+  background: transparent;
+  color: var(--edge-muted);
+  border-top: 1px solid var(--edge-border);
+}
+
+:host ::ng-deep .mat-mdc-icon-button {
+  color: var(--edge-muted);
+}

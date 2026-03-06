@@ -1,0 +1,43 @@
+<div class="profile-page">
+  <div class="profile-grid" *ngIf="user() as u">
+    <div class="info-card">
+      <div class="info-avatar">{{ u.name.charAt(0).toUpperCase() }}</div>
+      <h2>{{ u.name }}</h2>
+      <p class="info-email">{{ u.email }}</p>
+      <span class="role-badge" [class.role-admin]="u.role === 'admin'">
+        {{ u.role === 'admin' ? 'Administrador' : 'Analista' }}
+      </span>
+      <div class="info-meta" *ngIf="u.created_at">
+        <mat-icon>calendar_today</mat-icon>
+        <span>Membro desde {{ u.created_at | slice:0:10 }}</span>
+      </div>
+    </div>
+
+    <div class="edit-card">
+      <h3>Editar Perfil</h3>
+      <form [formGroup]="profileForm" (ngSubmit)="save()" class="profile-form">
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome</mat-label>
+          <input matInput formControlName="name" autocomplete="name" />
+          <mat-icon matPrefix>person</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nova Senha</mat-label>
+          <input matInput formControlName="password" type="password" autocomplete="new-password" />
+          <mat-icon matPrefix>lock</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Confirmar Senha</mat-label>
+          <input matInput formControlName="passwordConfirm" type="password" autocomplete="new-password" />
+          <mat-icon matPrefix>lock_outline</mat-icon>
+        </mat-form-field>
+
+        <button mat-flat-button type="submit" class="save-btn" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar Alteracoes' }}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

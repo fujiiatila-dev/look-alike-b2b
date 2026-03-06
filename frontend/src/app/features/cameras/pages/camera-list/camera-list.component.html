@@ -1,0 +1,66 @@
+<!-- Page header -->
+<div class="page-header">
+  <div class="header-left">
+    <h2>Câmeras</h2>
+  </div>
+  <div class="header-actions">
+    <button mat-stroked-button (click)="onStartAll()">
+      <mat-icon>play_circle</mat-icon>
+      Iniciar Todas
+    </button>
+    <button mat-stroked-button color="warn" (click)="onStopAll()">
+      <mat-icon>stop_circle</mat-icon>
+      Parar Todas
+    </button>
+    <button mat-flat-button color="primary" (click)="openRegisterDialog()">
+      <mat-icon>add</mat-icon>
+      Nova Câmera
+    </button>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<app-camera-filter-bar
+  [totalCount]="cameraService.cameras().length"
+  [runningCount]="cameraService.runningCount()"
+  [stoppedCount]="cameraService.stoppedCount()"
+  [errorCount]="cameraService.errorCount()"
+  (filterChange)="onFilterChange($event)" />
+
+<!-- Search / Sort row -->
+<div class="search-sort-row">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Buscar por ID da câmera" [ngModel]="searchTerm()" (ngModelChange)="onSearchChange($event)" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="sort-field">
+    <mat-select [ngModel]="sortBy()" (ngModelChange)="onSortChange($event)">
+      <mat-option value="default">Padrão</mat-option>
+      <mat-option value="state">Estado</mat-option>
+      <mat-option value="fps">FPS</mat-option>
+      <mat-option value="uptime">Uptime</mat-option>
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<!-- Camera grid -->
+@if (filteredCameras().length > 0) {
+  <div class="camera-grid">
+    @for (cam of filteredCameras(); track cam.camera_id) {
+      <app-camera-card
+        [camera]="cam"
+        (startCamera)="onStartCamera($event)"
+        (stopCamera)="onStopCamera($event)"
+        (deleteCamera)="onDeleteCamera($event)"
+        (restartCamera)="onRestartCamera($event)" />
+    }
+  </div>
+} @else if (!cameraService.loading()) {
+  <app-empty-state
+    icon="videocam_off"
+    title="Nenhuma câmera encontrada"
+    message="Registre sua primeira câmera para começar o monitoramento em tempo real."
+    ctaLabel="Nova Câmera"
+    (ctaClick)="openRegisterDialog()" />
+}

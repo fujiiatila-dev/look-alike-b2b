@@ -1,0 +1,80 @@
+<div class="lookalike-container">
+  <header class="header">
+    <div class="title-area">
+      <h1>Motor de Prospecção B2B</h1>
+      <p>Encontre "empresas gêmeas" com base no CNAE, faturamento e porte usando IA.</p>
+    </div>
+  </header>
+
+  <section class="search-section">
+    <mat-card class="search-card">
+      <mat-card-content class="search-content">
+        <mat-form-field appearance="outline" class="select-field">
+          <mat-label>Selecione a Empresa Âncora</mat-label>
+          <mat-select [(ngModel)]="anchorId" [disabled]="loading()">
+            <mat-option *ngFor="let emp of empresasBase()" [value]="emp.id">
+              {{ emp.nome_empresa }} (CNAE: {{ emp.cnae }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <button mat-flat-button color="primary" class="search-btn" 
+                (click)="buscar()" [disabled]="!anchorId || loading()">
+          <mat-icon>manage_search</mat-icon>
+          Buscar Semelhantes
+        </button>
+      </mat-card-content>
+      <mat-progress-bar mode="indeterminate" *ngIf="loading()"></mat-progress-bar>
+    </mat-card>
+  </section>
+
+  <div *ngIf="error()" class="error-msg">
+    {{ error() }}
+  </div>
+
+  <section class="results-section" *ngIf="recomendacoes().length > 0">
+    <h2>🎯 Melhores Leads Encontrados</h2>
+    
+    <div class="cards-grid">
+      <mat-card class="lead-card" *ngFor="let result of recomendacoes(); let i = index">
+        <div class="rank-badge">#{{ i + 1 }}</div>
+        
+        <mat-card-header>
+          <div mat-card-avatar class="avatar-icon">
+            <mat-icon>business</mat-icon>
+          </div>
+          <mat-card-title>{{ result.nome_empresa }}</mat-card-title>
+          <mat-card-subtitle>CNAE: {{ result.cnae }}</mat-card-subtitle>
+        </mat-card-header>
+        
+        <mat-divider></mat-divider>
+        
+        <mat-card-content class="card-details">
+          <div class="detail-item">
+            <mat-icon>monetization_on</mat-icon>
+            <span>Faturamento: Nível {{ result.faturamento_ordinal }}</span>
+          </div>
+          <div class="detail-item">
+            <mat-icon>groups</mat-icon>
+            <span>Funcionários: Nível {{ result.funcionarios_ordinal }}</span>
+          </div>
+          
+          <div class="similarity-box">
+            <div class="sim-header">
+              <span>Score de Similaridade</span>
+              <span class="sim-percent">{{ getSimilaridade(result.distancia_score) }}%</span>
+            </div>
+            <mat-progress-bar mode="determinate" [value]="getSimilaridade(result.distancia_score)" 
+                              color="accent" class="sim-bar"></mat-progress-bar>
+          </div>
+        </mat-card-content>
+        
+        <mat-card-actions class="card-actions">
+          <button mat-stroked-button color="primary" class="action-btn">
+            Ver Detalhes
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </section>
+</div>

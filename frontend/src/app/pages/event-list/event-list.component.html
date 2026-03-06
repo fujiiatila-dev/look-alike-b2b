@@ -1,0 +1,128 @@
+<div class="container">
+    <header>
+        <h1>Eventos</h1>
+        <a [routerLink]="R.eventsNew" class="btn btn-primary">+ Criar Evento Manual</a>
+    </header>
+
+    <div class="controls-row">
+        <div class="filter-buttons">
+            <button class="filter-btn" [class.is-active]="filterType() === 'all'"
+                (click)="setFilterType('all')">Todos</button>
+            <button class="filter-btn" [class.is-active]="filterType() === 'manual'"
+                (click)="setFilterType('manual')">Manual</button>
+            <button class="filter-btn filter-btn-auto" [class.is-active]="filterType() === 'auto'"
+                (click)="setFilterType('auto')">Auto</button>
+        </div>
+
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar evento...</mat-label>
+            <input matInput (keyup)="applyTextFilter($event)" placeholder="Ex. shoplifting" #input>
+        </mat-form-field>
+
+        <div class="sort-buttons">
+            <span class="sort-label">Ordenar:</span>
+            <button class="filter-btn" [class.is-active]="sortBy() === 'date_desc'"
+                (click)="setSort('date_desc')">Recentes</button>
+            <button class="filter-btn" [class.is-active]="sortBy() === 'risk_desc'"
+                (click)="setSort('risk_desc')">Maior Risco</button>
+            <button class="filter-btn" [class.is-active]="sortBy() === 'risk_asc'"
+                (click)="setSort('risk_asc')">Menor Risco</button>
+        </div>
+
+        <a [routerLink]="R.audit" class="audit-link">Auditoria de Exportações (LGPD) &rarr;</a>
+    </div>
+
+    <div class="table-container">
+        @if (loading()) {
+            <div class="loading-overlay">
+                Carregando eventos via API...
+            </div>
+        }
+
+        <table mat-table [dataSource]="items()" [trackBy]="trackByEventId">
+
+            <ng-container matColumnDef="event_id">
+                <th mat-header-cell *matHeaderCellDef> ID </th>
+                <td mat-cell *matCellDef="let evt" class="mono-id"> {{ evt.event_id.replace('evt_', '') }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="created_at">
+                <th mat-header-cell *matHeaderCellDef> Data/Hora </th>
+                <td mat-cell *matCellDef="let evt"> {{ evt.created_at | date:'dd/MM/yyyy, HH:mm:ss' }} </td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+                <th mat-header-cell *matHeaderCellDef> Tipo </th>
+                <td mat-cell *matCellDef="let evt">
+                    <span class="badge" [class.badge-auto]="evt.type === 'auto'">
+                        {{ evt.type | uppercase }}
+                    </span>
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="source">
+                <th mat-header-cell *matHeaderCellDef> Fonte </th>
+                <td mat-cell *matCellDef="let evt" class="source-cell">
+                    {{ evt.source_path.split('/').pop() }}
+                    @if (evt.camera_id) {
+                        <span class="sub-text">Cam: {{ evt.camera_id }}</span>
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="risk_score">
+                <th mat-header-cell *matHeaderCellDef> Risco </th>
+                <td mat-cell *matCellDef="let evt">
+                    @if (evt.risk_score != null) {
+                        <span class="risk-badge"
+                            [class.risk-high]="evt.risk_score >= 60"
+                            [class.risk-medium]="evt.risk_score >= 30 && evt.risk_score < 60"
+                            [class.risk-low]="evt.risk_score < 30">
+                            {{ evt.risk_score | number:'1.0-1' }}
+                        </span>
+                    } @else {
+                        <span class="empty-val">--</span>
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="label">
+                <th mat-header-cell *matHeaderCellDef> Label </th>
+                <td mat-cell *matCellDef="let evt">
+                    @if (evt.best_label) {
+                        <span class="badge" [ngClass]="'badge-' + evt.best_label.toLowerCase()">
+                            {{ evt.best_label }}
+                        </span>
+                    } @else {
+                        <span class="empty-val">--</span>
+                    }
+                </td>
+            </ng-container>
+
+            <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef> Ação </th>
+                <td mat-cell *matCellDef="let evt">
+                    <a [routerLink]="R.event(evt.event_id)" class="action-link">Abrir &rarr;</a>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell no-data" colspan="7">
+                    Nenhum evento encontrado.
+                </td>
+            </tr>
+        </table>
+
+        <mat-paginator
+            [length]="total()"
+            [pageSize]="pageSize()"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageIndex]="page() - 1"
+            (page)="onPageChange($event)"
+            showFirstLastButtons
+        ></mat-paginator>
+    </div>
+</div>

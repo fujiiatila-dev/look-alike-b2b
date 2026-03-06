@@ -1,0 +1,75 @@
+<div class="dashboard">
+  <header class="dashboard-header">
+    <div>
+      <h1 *ngIf="auth.currentUser() as user">Ola, {{ user.name }}</h1>
+      <p class="dashboard-subtitle">Resumo da plataforma Freedom-IA</p>
+    </div>
+    <a [routerLink]="R.events" class="btn-outline">
+      Ver todos os eventos
+      <mat-icon>arrow_forward</mat-icon>
+    </a>
+  </header>
+
+  <mat-progress-bar *ngIf="loading()" mode="indeterminate" class="dashboard-loading"></mat-progress-bar>
+
+  <div *ngIf="stats() as s" class="dashboard-content">
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--primary">
+          <mat-icon>video_library</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.total_events }}</span>
+          <span class="kpi-label">Total de Eventos</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--blue">
+          <mat-icon>upload_file</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.manual_events }}</span>
+          <span class="kpi-label">Eventos Manuais</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--purple">
+          <mat-icon>smart_toy</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.auto_events }}</span>
+          <span class="kpi-label">Eventos Automaticos</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--green">
+          <mat-icon>verified_user</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.total_exports }}</span>
+          <span class="kpi-label">Exports LGPD</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-card" *ngIf="s.by_status && (s.by_status | keyvalue).length > 0">
+      <h3>Status dos Eventos</h3>
+      <div class="status-list">
+        <div *ngFor="let item of s.by_status | keyvalue" class="status-row">
+          <span class="status-badge" [class]="statusClass(item.key)">{{ statusLabel(item.key) }}</span>
+          <span class="status-count">{{ item.value }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="s.total_events === 0">
+      <mat-icon class="empty-icon">video_library</mat-icon>
+      <h3>Nenhum evento encontrado</h3>
+      <p>Comece criando um evento manual ou inicie a deteccao automatica.</p>
+      <a [routerLink]="R.eventsNew" class="btn-primary">Criar Evento</a>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,163 @@
+<div class="dashboard">
+  <header class="dashboard-hero">
+    <div class="hero-copy">
+      <div class="hero-badges">
+        <span class="hero-badge hero-badge--live">
+          <span class="live-dot"></span>
+          Em tempo real
+        </span>
+        <span class="hero-badge">{{ office.occupancy().length }} áreas monitoradas</span>
+      </div>
+
+      <div>
+        <p class="hero-kicker">Intelbras Office</p>
+      </div>
+
+      <div>
+        <h1>Monitoramento de Escritorio</h1>
+        <p class="dashboard-subtitle">Ocupacao e presenca em tempo real</p>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <div class="hero-glance">
+        <span class="hero-glance-label">Pessoas agora</span>
+        <strong>{{ office.totalPresent() }}</strong>
+        <small>{{ office.zonesOverCapacity() }} zonas em atenção</small>
+      </div>
+
+      <a [routerLink]="R.alertas" class="btn-outline">
+        Ver alertas
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </div>
+  </header>
+
+  @if (office.stats(); as s) {
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--primary">
+          <mat-icon>groups</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ office.totalPresent() }}</span>
+          <span class="kpi-label">Pessoas Presentes</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--red">
+          <mat-icon>warning</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.cameras_over_capacity }}</span>
+          <span class="kpi-label">Zonas Acima da Capacidade</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--blue">
+          <mat-icon>person_pin</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.by_type['presence.started'] || 0 }}</span>
+          <span class="kpi-label">Entradas Registradas</span>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon kpi-icon--yellow">
+          <mat-icon>notifications_active</mat-icon>
+        </div>
+        <div class="kpi-data">
+          <span class="kpi-value">{{ s.by_type['alert.raised'] || 0 }}</span>
+          <span class="kpi-label">Alertas Gerados</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="insights-grid">
+      <section class="section-card">
+        <div class="section-heading">
+          <div>
+            <h3>Ocupacao por zona</h3>
+            <p>As areas com maior uso agora, com foco em capacidade e equilibrio.</p>
+          </div>
+          <a [routerLink]="R.ocupacao" class="text-link">Ver todas</a>
+        </div>
+
+        @if (topZones().length > 0) {
+          <div class="zone-list">
+            @for (zone of topZones(); track zone.camera_id + zone.zone_id) {
+              <article class="zone-row" [class.over-capacity]="zone.over_capacity">
+                <div class="zone-row-top">
+                  <div>
+                    <div class="zone-title-line">
+                      <span class="zone-name">{{ zone.zone_id }}</span>
+                      @if (zone.over_capacity) {
+                        <span class="zone-alert">Acima do limite</span>
+                      }
+                    </div>
+                    <span class="zone-camera">{{ zone.camera_id }}</span>
+                  </div>
+
+                  <div class="zone-count">
+                    <span class="count-value">{{ zone.count }}</span>
+                    <span class="count-label">/ {{ zone.capacity }}</span>
+                  </div>
+                </div>
+
+                <div class="zone-bar">
+                  <span class="zone-bar-fill" [style.width.%]="occupancyPercent(zone)"></span>
+                </div>
+              </article>
+            }
+          </div>
+        } @else {
+          <div class="section-empty">
+            <mat-icon>meeting_room</mat-icon>
+            <span>As zonas vao aparecer assim que o motor de ocupacao publicar dados.</span>
+          </div>
+        }
+      </section>
+
+      <section class="section-card section-card--presence">
+        <div class="section-heading">
+          <div>
+            <h3>Areas com mais presenca</h3>
+            <p>Resumo rapido das entradas mais recorrentes do escritorio.</p>
+          </div>
+          <a [routerLink]="R.presenca" class="text-link">Ver mais</a>
+        </div>
+
+        @if (presenceHighlights().length > 0) {
+          <div class="presence-list">
+            @for (zone of presenceHighlights(); track zone.zone_id + zone.camera_id; let index = $index) {
+              <a class="presence-item" [routerLink]="R.presenca">
+                <span class="presence-rank">{{ index + 1 }}</span>
+
+                <span class="presence-copy">
+                  <span class="presence-title">{{ zone.zone_id }}</span>
+                  <span class="presence-subtitle">
+                    {{ zone.camera_id }}
+                    <span class="presence-separator">·</span>
+                    {{ zone.last_seen | relativeTime }}
+                  </span>
+                </span>
+
+                <span class="presence-pill">{{ zone.entries }}</span>
+              </a>
+            }
+          </div>
+        } @else {
+          <div class="section-empty">
+            <mat-icon>badge</mat-icon>
+            <span>Os destaques de presenca vao aparecer aqui.</span>
+          </div>
+        }
+      </section>
+    </div>
+  } @else {
+    <mat-progress-bar mode="indeterminate" class="dashboard-loading" />
+  }
+</div>

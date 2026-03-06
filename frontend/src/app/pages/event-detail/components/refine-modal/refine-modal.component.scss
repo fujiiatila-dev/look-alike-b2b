@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  color: var(--edge-text);
+}
+
+h2[mat-dialog-title] {
+  margin-bottom: 0.2rem;
+  font-family: var(--font-family);
+  letter-spacing: 0.05em;
+  color: var(--edge-text);
+}
+
+.modal-content {
+  display: grid;
+  gap: 0.9rem;
+  min-width: min(27rem, 78vw);
+  padding-top: 0.65rem;
+}
+
+.control-row {
+  display: grid;
+  gap: 0.35rem;
+  border-radius: var(--fd-radius-sm);
+  border: 1px solid var(--edge-border);
+  background: #FAFBFB;
+  padding: 0.65rem 0.8rem;
+}
+
+.control-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+
+  label {
+    color: var(--edge-text);
+    font-family: var(--font-family);
+    font-size: 0.9rem;
+  }
+
+  span {
+    color: var(--edge-text);
+    font-family: var(--font-family);
+    font-size: 1.1rem;
+  }
+}
+
+.modal-actions {
+  border-top: 1px solid var(--edge-border);
+  padding-top: 0.7rem;
+}

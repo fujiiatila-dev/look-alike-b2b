@@ -1,0 +1,53 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">
+        <mat-icon>shield</mat-icon>
+      </div>
+      <div class="brand-text">
+        <strong>Freedom</strong>
+        <span>IA Platform</span>
+      </div>
+    </div>
+
+    <h2>Entrar</h2>
+    <p class="login-subtitle">Acesse a plataforma de analise de evidencias</p>
+
+    <mat-progress-bar *ngIf="loading()" mode="indeterminate" class="login-progress"></mat-progress-bar>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" type="email" autocomplete="email" />
+        <mat-icon matPrefix>email</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Senha</mat-label>
+        <input matInput formControlName="password"
+               [type]="hidePassword ? 'password' : 'text'"
+               autocomplete="current-password" />
+        <mat-icon matPrefix>lock</mat-icon>
+        <button mat-icon-button matSuffix type="button"
+                (click)="hidePassword = !hidePassword"
+                [attr.aria-label]="hidePassword ? 'Mostrar senha' : 'Esconder senha'">
+          <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <div *ngIf="errorMessage()" class="error-message">
+        <mat-icon>error_outline</mat-icon>
+        {{ errorMessage() }}
+      </div>
+
+      <button mat-flat-button type="submit" class="login-btn"
+              [disabled]="loginForm.invalid || loading()">
+        Entrar
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <span class="version-tag">v1.6.1</span>
+    </div>
+  </div>
+</div>

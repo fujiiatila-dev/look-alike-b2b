@@ -1,0 +1,52 @@
+.filter-bar {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--edge-border);
+  border-radius: 999px;
+  background: var(--card-bg);
+  color: var(--edge-muted);
+  font: var(--text-body-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background var(--fd-transition-fast) ease,
+    border-color var(--fd-transition-fast) ease,
+    color var(--fd-transition-fast) ease;
+
+  &:hover {
+    border-color: var(--fd-primary);
+    color: var(--edge-text);
+  }
+
+  &.active {
+    background: var(--fd-primary);
+    border-color: var(--fd-primary);
+    color: var(--fd-primary-fg);
+    font-weight: 600;
+  }
+}
+
+.pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.08);
+  font-size: 12px;
+  font-weight: 600;
+
+  .active & {
+    background: rgba(0, 0, 0, 0.15);
+  }
+}

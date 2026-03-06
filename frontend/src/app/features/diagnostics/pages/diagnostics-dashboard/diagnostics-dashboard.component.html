@@ -1,0 +1,176 @@
+<div class="diag-page">
+  <!-- Section: Header -->
+  <header class="diag-header">
+    <h2 class="diag-title">Diagnóstico de Hardware</h2>
+    @if (diag.health(); as h) {
+      <div class="header-chips">
+        @if (h.gpu_name) {
+          <span class="chip chip--gpu">
+            <mat-icon>memory</mat-icon>
+            {{ h.gpu_name }}
+          </span>
+        }
+        @if (h.gpu_driver_version) {
+          <span class="chip chip--driver">Driver {{ h.gpu_driver_version }}</span>
+        }
+        <span class="chip chip--uptime">
+          <mat-icon>schedule</mat-icon>
+          {{ h.uptime_hours | number:'1.1-1' }}h uptime
+        </span>
+      </div>
+    }
+  </header>
+
+  @if (diag.health(); as h) {
+    <!-- Section A: Top Metrics — KPI Gauges -->
+    <section class="metrics-grid">
+      <div class="metric-cell">
+        <app-system-gauge
+          [value]="h.cpu_percent"
+          title="CPU"
+          unit="%" />
+      </div>
+      <div class="metric-cell">
+        <app-system-gauge
+          [value]="diag.ramPercent()"
+          title="RAM"
+          unit="%"
+          [warnThreshold]="80" />
+      </div>
+      @if (h.gpu_util_percent !== null) {
+        <div class="metric-cell">
+          <app-system-gauge
+            [value]="h.gpu_util_percent!"
+            title="GPU"
+            unit="%"
+            [warnThreshold]="85" />
+        </div>
+      }
+      @if (h.vram_used_mb !== null && h.vram_total_mb !== null) {
+        <div class="metric-cell">
+          <app-system-gauge
+            [value]="diag.vramPercent()"
+            title="VRAM"
+            unit="%"
+            [warnThreshold]="85" />
+        </div>
+      }
+      <div class="metric-cell">
+        <app-system-gauge
+          [value]="diag.diskPercent()"
+          title="Disco"
+          unit="%"
+          [warnThreshold]="85" />
+      </div>
+      <div class="metric-cell">
+        <app-system-gauge
+          [value]="diag.netThroughputMbps()"
+          [max]="100"
+          title="Rede"
+          unit="Mbps"
+          [warnThreshold]="80" />
+      </div>
+    </section>
+
+    <!-- Camera Performance Table (right after gauges) -->
+    @if (h.cameras.length > 0) {
+      <section class="table-section">
+        <app-camera-perf-table [cameras]="h.cameras" />
+      </section>
+    }
+
+    <!-- Section B: Charts (left 2/3) + Detail Cards (right 1/3) -->
+    <section class="main-grid">
+      <!-- Left column: Charts stacked -->
+      <div class="main-grid__charts">
+        @if (diag.history().length >= 2) {
+          <div class="card card--chart">
+            <h3 class="card__title">CPU + GPU (%)</h3>
+            <div class="chart-wrapper">
+              <ngx-charts-line-chart
+                [results]="diag.cpuGpuSeries()"
+                [scheme]="chartLineScheme"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showXAxisLabel]="false"
+                [showYAxisLabel]="false"
+                [autoScale]="false"
+                [yScaleMin]="0"
+                [yScaleMax]="100"
+                [animations]="false"
+                [legend]="true"
+                [legendPosition]="legendBelow">
+              </ngx-charts-line-chart>
+            </div>
+          </div>
+
+          <div class="card card--chart">
+            <h3 class="card__title">RAM + VRAM (MB)</h3>
+            <div class="chart-wrapper">
+              <ngx-charts-line-chart
+                [results]="diag.ramVramSeries()"
+                [scheme]="chartLineScheme"
+                [xAxis]="true"
+                [yAxis]="true"
+                [showXAxisLabel]="false"
+                [showYAxisLabel]="false"
+                [autoScale]="true"
+                [animations]="false"
+                [legend]="true"
+                [legendPosition]="legendBelow">
+              </ngx-charts-line-chart>
+            </div>
+          </div>
+
+          @if (diag.networkSeries().length > 0) {
+            <div class="card card--chart">
+              <h3 class="card__title">Rede (B/s)</h3>
+              <div class="chart-wrapper">
+                <ngx-charts-line-chart
+                  [results]="diag.networkSeries()"
+                  [scheme]="chartNetScheme"
+                  [xAxis]="true"
+                  [yAxis]="true"
+                  [showXAxisLabel]="false"
+                  [showYAxisLabel]="false"
+                  [autoScale]="true"
+                  [animations]="false"
+                  [legend]="true"
+                  [legendPosition]="legendBelow">
+                </ngx-charts-line-chart>
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Right column: Detail cards stacked (GPU first, CPU below) -->
+      <div class="main-grid__details">
+        <app-system-resources-card
+          [gpuName]="h.gpu_name"
+          [gpuUtil]="h.gpu_util_percent"
+          [gpuTemp]="h.gpu_temp_celsius ?? 0"
+          [vramUsed]="h.vram_used_mb ?? 0"
+          [vramTotal]="h.vram_total_mb ?? 1"
+          [ramUsed]="h.ram_used_mb"
+          [ramTotal]="h.ram_total_mb"
+          [diskUsed]="h.disk_used_gb"
+          [diskTotal]="h.disk_total_gb"
+          [diskIoRead]="h.disk_io_read_mb"
+          [diskIoWrite]="h.disk_io_write_mb"
+          [interfaces]="h.network_interfaces" />
+
+        <app-cpu-detail-card
+          [perCpu]="h.per_cpu_percent"
+          [freqMhz]="h.cpu_freq_mhz"
+          [processCount]="h.process_count" />
+      </div>
+    </section>
+
+  } @else if (diag.loading()) {
+    <div class="loading-state">
+      <mat-icon class="loading-icon">hourglass_empty</mat-icon>
+      <p>Carregando diagnóstico de hardware...</p>
+    </div>
+  }
+</div>

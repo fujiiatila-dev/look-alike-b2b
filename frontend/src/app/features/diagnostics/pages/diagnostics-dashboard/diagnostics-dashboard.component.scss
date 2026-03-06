@@ -1,0 +1,302 @@
+// ─────────────────────────────────────────────────────────
+// Diagnostics Dashboard — CSS Grid layout
+// Hierarchy: KPIs → Camera Table → Charts (full-width) → Details (2fr 1fr)
+// Uses global theme tokens (--card-bg, --edge-border, etc.)
+// ─────────────────────────────────────────────────────────
+:host {
+  --diag-gap: 24px;
+  --diag-section-gap: 32px;
+  --diag-padding: 24px;
+  --diag-hover-shadow: var(--fd-shadow-2);
+
+  display: block;
+}
+
+// ─────────────────────────────────────────────────────────
+// Page container
+// ─────────────────────────────────────────────────────────
+.diag-page {
+  padding: var(--diag-padding);
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+// ─────────────────────────────────────────────────────────
+// Header
+// ─────────────────────────────────────────────────────────
+.diag-header {
+  margin-bottom: var(--diag-section-gap);
+}
+
+.diag-title {
+  font: var(--text-h2);
+  margin: 0 0 12px 0;
+}
+
+.header-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  font: var(--text-caption);
+  font-weight: 600;
+  border: 1px solid var(--edge-border);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.chip--gpu {
+  background: rgba(139, 92, 246, 0.12);
+  color: #a78bfa;
+}
+
+.chip--driver {
+  background: rgba(78, 97, 246, 0.1);
+  color: var(--accent-blue);
+}
+
+.chip--uptime {
+  background: rgba(34, 197, 94, 0.1);
+  color: var(--accent-green);
+}
+
+// ─────────────────────────────────────────────────────────
+// Shared card base
+// ─────────────────────────────────────────────────────────
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--edge-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--fd-shadow-1);
+  transition:
+    transform var(--fd-transition-base) ease,
+    box-shadow var(--fd-transition-base) ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--diag-hover-shadow);
+  }
+}
+
+.card__title {
+  font: var(--text-body-sm);
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+// ─────────────────────────────────────────────────────────
+// Section A — Top Metrics (KPI Gauges)
+// Desktop: 6 cols | Tablet: 3 cols | Mobile: 2 cols
+// ─────────────────────────────────────────────────────────
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--diag-gap);
+  margin-bottom: var(--diag-section-gap);
+}
+
+.metric-cell {
+  background: var(--card-bg);
+  border: 1px solid var(--edge-border);
+  border-radius: 16px;
+  padding: 20px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: var(--fd-shadow-1);
+  transition:
+    transform var(--fd-transition-base) ease,
+    box-shadow var(--fd-transition-base) ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--diag-hover-shadow);
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Main Grid — Charts (left 2fr) + Details (right 1fr)
+// Desktop: side-by-side | Tablet/Mobile: stacked
+// ─────────────────────────────────────────────────────────
+.main-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  align-items: start;
+  gap: var(--diag-gap);
+  margin-bottom: var(--diag-section-gap);
+}
+
+.main-grid__charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--diag-gap);
+}
+
+.main-grid__details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--diag-gap);
+
+  ::ng-deep .detail-card,
+  ::ng-deep .resources-card {
+    border-radius: 16px;
+    box-shadow: var(--fd-shadow-1);
+    transition:
+      transform var(--fd-transition-base) ease,
+      box-shadow var(--fd-transition-base) ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--diag-hover-shadow);
+    }
+  }
+}
+
+.card--chart {
+  min-height: 320px;
+  padding-bottom: 8px;
+}
+
+.chart-wrapper {
+  height: 260px;
+  margin-bottom: 40px;
+}
+
+// ─────────────────────────────────────────────────────────
+// Camera Table (full width)
+// ─────────────────────────────────────────────────────────
+.table-section {
+  margin-bottom: var(--diag-section-gap);
+
+  ::ng-deep .table-card {
+    border-radius: 16px;
+    box-shadow: var(--fd-shadow-1);
+    transition:
+      transform var(--fd-transition-base) ease,
+      box-shadow var(--fd-transition-base) ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--diag-hover-shadow);
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Loading state
+// ─────────────────────────────────────────────────────────
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: var(--edge-muted);
+
+  .loading-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+    animation: spin 1.5s linear infinite;
+  }
+
+  p {
+    font: var(--text-body-sm);
+    margin: 0;
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// ─────────────────────────────────────────────────────────
+// ngx-charts style overrides
+// ─────────────────────────────────────────────────────────
+::ng-deep {
+  .ngx-charts {
+    text {
+      fill: var(--edge-muted) !important;
+    }
+    .gridline-path {
+      stroke: var(--edge-border) !important;
+    }
+    .refline-path {
+      stroke: var(--edge-border) !important;
+    }
+  }
+
+  // Legend: force visible below chart area
+  .chart-legend {
+    position: relative;
+    z-index: 1;
+
+    .legend-title {
+      display: none;
+    }
+
+    .legend-labels {
+      padding: 0;
+      margin: 0;
+    }
+
+    .legend-label-text {
+      color: var(--edge-muted) !important;
+    }
+  }
+}
+
+// ─────────────────────────────────────────────────────────
+// Responsive breakpoints
+// ─────────────────────────────────────────────────────────
+
+// Tablet (768–1200px)
+@media (max-width: 1200px) {
+  .metrics-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Mobile (<768px)
+@media (max-width: 768px) {
+  :host {
+    --diag-gap: 16px;
+    --diag-section-gap: 24px;
+  }
+
+  .diag-page {
+    padding: 16px;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-wrapper {
+    height: 200px;
+    margin-bottom: 36px;
+  }
+
+  .card--chart {
+    min-height: 280px;
+  }
+}

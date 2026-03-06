@@ -1,0 +1,69 @@
+<div class="page-header">
+  <h2>Alertas</h2>
+</div>
+
+@if (office.alertEvents(); as result) {
+  @if (result.items.length > 0) {
+    <div class="section-card">
+      <table class="events-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Camera</th>
+            <th>Zona</th>
+            <th>Tipo de Alerta</th>
+            <th>Severidade</th>
+            <th>Mensagem</th>
+            <th>Evidencia</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (evt of result.items; track evt.event_id) {
+            <tr>
+              <td>{{ evt.timestamp_utc | date:'dd/MM/yyyy HH:mm:ss' }}</td>
+              <td>{{ evt.camera_id }}</td>
+              <td>{{ evt.zone_id ?? '—' }}</td>
+              <td>{{ evt.alert_type ?? '—' }}</td>
+              <td>
+                <span class="badge" [class]="severityClass(evt.severity)">
+                  {{ severityLabel(evt.severity) }}
+                </span>
+              </td>
+              <td class="alert-message">{{ evt.alert_message ?? '—' }}</td>
+              <td>
+                @if (evidenceUrl(evt.evidence_path); as evidence) {
+                  <a class="table-link" [href]="evidence" target="_blank" rel="noopener">
+                    Abrir
+                  </a>
+                } @else {
+                  <span class="table-muted">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="pagination">
+        <button mat-stroked-button
+          [disabled]="currentPage() <= 1"
+          (click)="loadPage(currentPage() - 1)">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span>Pagina {{ currentPage() }} · {{ result.total }} alertas</span>
+        <button mat-stroked-button
+          [disabled]="currentPage() * limit >= result.total"
+          (click)="loadPage(currentPage() + 1)">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">check_circle</mat-icon>
+      <p>Nenhum alerta registrado.</p>
+    </div>
+  }
+} @else {
+  <p class="loading-text">Carregando alertas...</p>
+}

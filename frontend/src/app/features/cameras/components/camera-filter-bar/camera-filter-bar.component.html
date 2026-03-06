@@ -1,0 +1,11 @@
+<div class="filter-bar">
+  @for (pill of pills; track pill.key) {
+    <button
+      class="filter-pill"
+      [class.active]="active() === pill.key"
+      (click)="select(pill.key)">
+      {{ pill.label }}
+      <span class="pill-count">{{ getCount(pill.key) }}</span>
+    </button>
+  }
+</div>

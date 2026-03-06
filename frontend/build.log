@@ -1,0 +1,12 @@
+❯ Building...
+✔ Building...
+Initial chunk files | Names         |  Raw size | Estimated transfer size
+main-4KSFHN2M.js    | main          | 304.20 kB |                81.55 kB
+styles-X4PIJ3TF.css | styles        |   1.45 kB |               478 bytes
+
+                    | Initial total | 305.66 kB |                82.03 kB
+
+Application bundle generation complete. [2.221 seconds] - 2026-02-24T16:25:22.245Z
+
+Output location: /home/vision/Freedom_IA/product_v1/ui-angular/dist/ui-angular
+
