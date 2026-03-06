@@ -1,11 +1,25 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from pydantic import BaseModel
-import pandas as pd
 from typing import List, Optional
+
 from lookalike_agent import B2BLookalikeEngine
+from repositories import get_empresa_repository, get_user_repository, get_empresa_info_repository
+from ai_agents import (
+    AgentOrchestrator, 
+    LeadEnrichmentAgent,
+    PropensityScoreAgent,
+    OutreachDraftAgent
+)
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="B2B Look-alike API")
+# ────────────────────────────────
+# App Setup
+# ────────────────────────────────
+app = FastAPI(
+    title="Freedom.ai - B2B Look-alike API",
+    description="Motor de prospecção B2B baseado em similaridade de perfil empresarial.",
+    version="1.0.0"
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,24 +29,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Simulando um banco de dados real
-# Normalmente usaríamos PostgreSQL ou Clickhouse aqui e leríamos os leads de lá.
-DADOS_MOCK = pd.DataFrame({
-    'id': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-    'nome_empresa': [
-        'Tech Alpha', 'Tech Beta', 'Construtora X', 'Tech Gamma', 'Padaria Z',
-        'Fintech Y', 'Consultoria Max', 'Agropecuária Z', 'Varejo Beta', 'Startup Omega'
-    ],
-    'cnae': [
-        '62.04-0-00', '62.04-0-00', '41.20-4-00', '62.01-5-01', '10.53-8-00', 
-        '64.99-9-99', '70.20-4-00', '01.15-6-00', '47.11-3-02', '62.01-5-01'
-    ],
-    'faturamento_ordinal': [4, 4, 5, 2, 1, 5, 3, 4, 3, 2],
-    'funcionarios_ordinal': [3, 4, 5, 2, 1, 4, 2, 5, 4, 2]
-})
-
+# ────────────────────────────────
+# Dependências (Injeção de repositórios e engine)
+# ────────────────────────────────
 engine = B2BLookalikeEngine(w_cnae=1.5, w_fat=1.0, w_func=0.8)
+orchestrator = AgentOrchestrator()
 
+# ────────────────────────────────
+# Modelos (Schemas)
+# ────────────────────────────────
 class LookalikeRequest(BaseModel):
     anchor_id: int
     top_n: int = 5
@@ -44,7 +49,6 @@ class EmpresaResponse(BaseModel):
     faturamento_ordinal: int
     funcionarios_ordinal: int
 
-# Auth & Multi-tenant Models
 class EmpresaInfo(BaseModel):
     nome_fantasia: str
     cnpj: str
@@ -60,7 +64,7 @@ class UserResponse(BaseModel):
     id: str
     email: str
     name: str
-    role: str # 'owner' (nós), 'admin_corp' (cliente), 'user' (equipe do cliente)
+    role: str  # 'owner' | 'admin_corp' | 'user'
     empresa_id: Optional[str] = None
 
 class LoginResponse(BaseModel):
@@ -75,43 +79,66 @@ class WhoamiResponse(BaseModel):
     display_name: str
     empresa_id: Optional[str] = None
 
-# Mock Database
-USERS_DB = [
-    {"id": "usr_owner", "email": "dono@saas.com", "name": "Proprietário SaaS", "role": "owner", "empresa_id": None},
-    {"id": "usr_corp_admin", "email": "admin@corporacao.com", "name": "Admin Cliente 1", "role": "admin_corp", "empresa_id": "emp_01"}
-]
-
-EMPRESAS_DB = {
-    "emp_01": {
-        "nome_fantasia": "Corporação Exemplo Ltda",
-        "cnpj": "00.000.000/0001-91",
-        "email_contato": "contato@exemplo.com",
-        "telefone": "(11) 99999-9999",
-        "linkedin": "linkedin.com/company/exemplo"
-    }
-}
-
+# Token mock - substituir por JWT real (python-jose + HS256)
 MOCK_TOKEN = "jwt_token_perm_val_123"
 
-def get_current_user(authorization: Optional[str] = Header(None)):
+# ────────────────────────────────
+# Autenticação (porta aberta para JWT real)
+# ────────────────────────────────
+
+def get_current_user(authorization: Optional[str] = Header(None)) -> UserResponse:
+    """
+    PORTA ABERTA: substituir MOCK_TOKEN por validação JWT real.
+    Exemplo com python-jose:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+        user_id = payload.get("sub")
+        user = user_repo.get_by_id(user_id)
+    """
     if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Token inválido.")
-    
+
     token = authorization.split(" ")[1]
     if token != MOCK_TOKEN:
         raise HTTPException(status_code=401, detail="Sessão expirada.")
-    
-    # Por simplicidade, retornamos o primeiro usuário do mock ou buscamos por lógica
-    return UserResponse(**USERS_DB[0]) 
 
-@app.post("/api/auth/login", response_model=LoginResponse)
+    user_repo = get_user_repository()
+    # Aqui deveria buscar o user pelo token decodificado
+    # Por enquanto retorna o primeiro user (owner) para o mock
+    users = [user_repo.get_by_email("dono@saas.com")]
+    if not users[0]:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+    return UserResponse(**users[0])
+
+
+def require_role(*roles):
+    """Decorator de autorização por role."""
+    def checker(user: UserResponse = Depends(get_current_user)):
+        if user.role not in roles:
+            raise HTTPException(status_code=403, detail=f"Requer um dos perfis: {roles}")
+        return user
+    return checker
+
+
+# ────────────────────────────────
+# ROTAS: Auth
+# ────────────────────────────────
+
+@app.post("/api/auth/login", response_model=LoginResponse, tags=["Auth"])
 def login(req: LoginRequest):
-    for u in USERS_DB:
-        if req.email == u["email"]:
-            return LoginResponse(access_token=MOCK_TOKEN, user=UserResponse(**u))
-    raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+    user_repo = get_user_repository()
+    user = user_repo.get_by_email(req.email)
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado.")
+    # PORTA ABERTA: adicionar checagem de hash da senha (bcrypt.checkpw)
+    return LoginResponse(access_token=MOCK_TOKEN, user=UserResponse(**user))
 
-@app.get("/api/auth/whoami", response_model=WhoamiResponse)
+
+@app.get("/api/auth/me", response_model=UserResponse, tags=["Auth"])
+def get_me(user: UserResponse = Depends(get_current_user)):
+    return user
+
+
+@app.get("/api/auth/whoami", response_model=WhoamiResponse, tags=["Auth"])
 def whoami(user: UserResponse = Depends(get_current_user)):
     return WhoamiResponse(
         sub=user.email,
@@ -122,38 +149,108 @@ def whoami(user: UserResponse = Depends(get_current_user)):
         empresa_id=user.empresa_id
     )
 
-@app.get("/api/empresa/perfil", response_model=EmpresaInfo)
+
+# ────────────────────────────────
+# ROTAS: Empresa / Perfil
+# ────────────────────────────────
+
+@app.get("/api/empresa/perfil", response_model=EmpresaInfo, tags=["Empresa"])
 def get_perfil_empresa(user: UserResponse = Depends(get_current_user)):
     if not user.empresa_id:
         raise HTTPException(status_code=404, detail="Usuário não vinculado a uma empresa.")
-    return EmpresaInfo(**EMPRESAS_DB[user.empresa_id])
+    repo = get_empresa_info_repository()
+    info = repo.get_by_id(user.empresa_id)
+    if not info:
+        raise HTTPException(status_code=404, detail="Perfil da empresa não encontrado.")
+    return EmpresaInfo(**info)
 
-@app.put("/api/empresa/perfil")
-def update_perfil_empresa(info: EmpresaInfo, user: UserResponse = Depends(get_current_user)):
-    if user.role not in ['owner', 'admin_corp']:
-        raise HTTPException(status_code=403, detail="Sem permissão.")
-    EMPRESAS_DB[user.empresa_id] = info.dict()
+
+@app.put("/api/empresa/perfil", tags=["Empresa"])
+def update_perfil_empresa(info: EmpresaInfo, user: UserResponse = Depends(require_role("owner", "admin_corp"))):
+    repo = get_empresa_info_repository()
+    repo.update(user.empresa_id, info.dict())
     return {"status": "sucesso"}
 
-@app.post("/api/admin/criar-usuario")
+
+# ────────────────────────────────
+# ROTAS: Administração de Usuários
+# ────────────────────────────────
+
+@app.post("/api/admin/criar-usuario", tags=["Admin"])
 def criar_usuario(novo_user: UserResponse, user: UserResponse = Depends(get_current_user)):
-    # Owner cria Admin_Corp. Admin_Corp cria User.
     if user.role == 'owner' or (user.role == 'admin_corp' and novo_user.role == 'user'):
-        USERS_DB.append(novo_user.dict())
+        repo = get_user_repository()
+        repo.create(novo_user.dict())
         return {"status": "usuário criado"}
     raise HTTPException(status_code=403, detail="Permissão negada para criar este nível de conta.")
 
-@app.get("/api/empresas", response_model=List[EmpresaResponse])
-def get_todas_empresas(user: UserResponse = Depends(get_current_user)):
-    # Rota protegida (apenas para usuários com token)
-    return DADOS_MOCK.to_dict(orient="records")
 
-@app.post("/api/lookalike")
+# ────────────────────────────────
+# ROTAS: Motor Look-alike
+# ────────────────────────────────
+
+@app.get("/api/empresas", response_model=List[EmpresaResponse], tags=["Lookalike"])
+def get_todas_empresas(user: UserResponse = Depends(get_current_user)):
+    """Lista as empresas disponíveis para seleção como âncora."""
+    repo = get_empresa_repository()
+    df = repo.get_all()
+    return df.to_dict(orient="records")
+
+
+@app.post("/api/lookalike", tags=["Lookalike"])
 def do_lookalike(req: LookalikeRequest, user: UserResponse = Depends(get_current_user)):
-    # Rota protegida
+    """Executa o motor de distância euclidiana e retorna os top-N leads mais similares."""
+    repo = get_empresa_repository()
+    df = repo.get_all()
     try:
-        resultado = engine.fit_predict(df=DADOS_MOCK, anchor_id=req.anchor_id, top_n=req.top_n)
+        resultado = engine.fit_predict(df=df, anchor_id=req.anchor_id, top_n=req.top_n)
         return resultado.to_dict(orient="records")
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+# ────────────────────────────────
+# ROTAS: Agentes de IA (porta de extensão)
+# ────────────────────────────────
+
+@app.post("/api/agents/enrich", tags=["AI Agents"])
+def enrich_lead(input_data: dict, user: UserResponse = Depends(get_current_user)):
+    """
+    Enriquece os dados de um lead com informações externas.
+    PORTA ABERTA: plugar Receita Federal, BigDataCorp, LinkedIn, etc.
+    """
+    result = LeadEnrichmentAgent().run(input_data)
+    return result
+
+
+@app.post("/api/agents/score", tags=["AI Agents"])
+def score_lead(input_data: dict, user: UserResponse = Depends(get_current_user)):
+    """
+    Calcula a propensão de conversão de um lead.
+    PORTA ABERTA: plugar modelo XGBoost ou chamada GPT.
+    """
+    result = PropensityScoreAgent().run(input_data)
+    return result
+
+
+@app.post("/api/agents/outreach", tags=["AI Agents"])
+def gerar_abordagem(input_data: dict, user: UserResponse = Depends(get_current_user)):
+    """
+    Gera um rascunho de mensagem de abordagem personalizada.
+    PORTA ABERTA: plugar OpenAI GPT-4o, Claude ou Gemini.
+    """
+    result = OutreachDraftAgent().run(input_data)
+    return result
+
+
+@app.post("/api/agents/pipeline", tags=["AI Agents"])
+def run_full_pipeline(input_data: dict, user: UserResponse = Depends(get_current_user)):
+    """
+    Executa o pipeline completo de IA:
+    Enriquecimento → Scoring → Geração de Abordagem.
+    """
+    result = orchestrator.run_pipeline(
+        agents=[LeadEnrichmentAgent(), PropensityScoreAgent(), OutreachDraftAgent()],
+        input_data=input_data
+    )
+    return result

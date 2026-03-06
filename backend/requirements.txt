@@ -1,6 +1,16 @@
 fastapi
-uvicorn
+uvicorn[standard]
 pandas
 numpy
 scikit-learn
 pydantic
+python-dotenv
+# Para banco de dados real (descomente conforme necessário):
+# asyncpg           # PostgreSQL async
+# sqlalchemy        # ORM SQL
+# supabase          # Supabase client
+# python-jose[cryptography]   # JWT real
+# passlib[bcrypt]             # Hashing de senhas
+# openai                      # GPT-4o
+# anthropic                   # Claude
+# google-generativeai         # Gemini
