@@ -4,14 +4,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Amostra - Motor B2B Look-alike</title>
+    <title>SaaS B2B - Painel Administrativo</title>
     <style>
         :root {
             --primary: #4F46E5;
             --bg-color: #0F172A;
             --card-bg: #1E293B;
+            --sidebar-bg: #0F172A;
             --text: #F8FAFC;
             --text-muted: #94A3B8;
+            --border: #334155;
         }
 
         body {
@@ -20,179 +22,232 @@
             color: var(--text);
             margin: 0;
             padding: 0;
-        }
-
-        .header {
-            background-color: var(--card-bg);
-            padding: 20px 40px;
-            border-bottom: 1px solid #334155;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .header h1 {
-            margin: 0;
-            font-size: 24px;
+        /* Sidebar Retrátil */
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar-header {
+            padding: 24px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            font-weight: bold;
+            font-size: 20px;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+            overflow: hidden;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 0 20px;
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
+        .nav-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-decoration: none;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            color: #818CF8;
+            border-left: 3px solid var(--primary);
+        }
+
+        .icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            background: #020617;
+        }
+
+        .top-bar {
+            height: 64px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 16px;
+        }
+
+        .page-container {
+            padding: 40px;
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Cards & UI */
         .card {
             background-color: var(--card-bg);
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 32px;
         }
 
-        .search-row {
-            display: flex;
-            gap: 16px;
-            align-items: flex-end;
+        h1 {
+            font-size: 28px;
+            margin: 0 0 8px 0;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        /* Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
         }
 
         .input-group {
-            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
 
         label {
-            font-weight: 500;
+            font-size: 14px;
             color: var(--text-muted);
+            font-weight: 500;
         }
 
-        select,
-        button {
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #334155;
+        input {
             background: #0F172A;
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 8px;
             color: white;
             font-size: 16px;
+        }
+
+        input:focus {
+            border-color: var(--primary);
             outline: none;
         }
 
-        button {
+        .btn-primary {
             background: var(--primary);
+            color: white;
             border: none;
-            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        button:hover {
-            background: #4338CA;
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .results {
-            margin-top: 40px;
+        /* Login Modal Overlay */
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.95);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+        }
+
+        .login-box {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* Lookalike results */
+        .results-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 24px;
         }
 
         .result-card {
-            background: var(--card-bg);
-            border-radius: 12px;
+            background: #1E293B;
             padding: 24px;
-            position: relative;
-            border: 1px solid #334155;
-            transition: transform 0.2s;
+            border-radius: 12px;
+            border: 1px solid var(--border);
         }
 
-        .result-card:hover {
-            transform: translateY(-5px);
+        .match-score {
+            margin-top: 16px;
+            padding: 12px;
+            background: #0F172A;
+            border-radius: 8px;
         }
 
-        .rank {
-            position: absolute;
-            top: -12px;
-            right: -12px;
-            background: var(--primary);
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            font-weight: bold;
-        }
-
-        .sim-bar {
+        .progress-bg {
             height: 6px;
             background: #334155;
             border-radius: 3px;
             margin-top: 8px;
-            overflow: hidden;
         }
 
-        .sim-progress {
+        .progress-fill {
             height: 100%;
             background: #10B981;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 4px;
-            background: #1E293B;
-            border: 1px solid #334155;
-            font-size: 12px;
-            margin-right: 8px;
-        }
-
-        .login-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.9);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            backdrop-filter: blur(4px);
-        }
-
-        .login-modal.hidden {
-            display: none;
-        }
-
-        .login-box {
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 400px;
-            border: 1px solid #334155;
-            text-align: center;
-        }
-
-        .login-box input {
-            width: 100%;
-            margin-bottom: 16px;
-            box-sizing: border-box;
-        }
-
-        .login-box button {
-            width: 100%;
-        }
-
-        .error {
-            color: #EF4444;
-            margin-bottom: 16px;
-            font-size: 14px;
+            border-radius: 3px;
+            transition: width 1s;
         }
     </style>
 </head>
@@ -200,174 +255,239 @@
 <body>
 
     <!-- Login Modal -->
-    <div class="login-modal" id="loginModal">
-        <div class="login-box">
-            <h2 style="margin-top: 0">Acesso Restrito</h2>
-            <p style="color: var(--text-muted); margin-bottom: 24px">Faça login para utilizar a Inteligência B2B.</p>
-
-            <div id="loginError" class="error"></div>
-
-            <input type="email" id="email" value="admin@b2b.com" placeholder="E-mail">
-            <input type="password" id="password" value="12345" placeholder="Senha">
-            <button onclick="fazerLogin()">Entrar na Plataforma</button>
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box card">
+            <h2 style="margin-top:0">Portal Corporativo B2B</h2>
+            <p style="color: var(--text-muted)">Acesse com seu nível de conta (Dono ou Admin)</p>
+            <div id="loginError" style="color: #ef4444; margin-bottom: 16px; font-size: 14px;"></div>
+            <div class="input-group" style="text-align: left; margin-bottom: 20px;">
+                <label>E-mail Corporativo</label>
+                <input type="email" id="loginEmail" placeholder="admin@corporacao.com">
+            </div>
+            <div class="input-group" style="text-align: left; margin-bottom: 30px;">
+                <label>Senha de Acesso</label>
+                <input type="password" id="loginPass" placeholder="••••••••">
+            </div>
+            <button class="btn-primary" style="width: 100%" onclick="fazerLogin()">Entrar no SaaS</button>
+            <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted)">
+                Teste: admin@corporacao.com ou dono@saas.com
+            </div>
         </div>
     </div>
 
-    <div class="header">
-        <h1>🚀 B2B L-Akurat <span
-                style="font-size: 14px; background: rgba(79, 70, 229, 0.2); padding: 4px 8px; color: #818CF8; border-radius: 4px;">SaaS
-                Premium</span></h1>
-        <div style="display: flex; gap: 16px; align-items: center">
-            <span id="userName" style="color: var(--text-muted)"></span>
-            <button style="padding: 8px 16px; background: transparent; border: 1px solid #334155"
-                onclick="logout()">Sair</button>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span>🚀 L-AKURAT SaaS</span>
         </div>
-    </div>
+        <nav class="sidebar-nav">
+            <a class="nav-item active" onclick="showPage('lookalike', this)">
+                <span class="icon">🔍</span> <span>Look-alike Engine</span>
+            </a>
+            <a class="nav-item" onclick="showPage('perfil', this)">
+                <span class="icon">🏢</span> <span>Dados da Empresa</span>
+            </a>
+            <a class="nav-item" onclick="showPage('contas', this)">
+                <span class="icon">👥</span> <span>Gestão de Contas</span>
+            </a>
+        </nav>
+        <div style="padding: 20px; border-top: 1px solid var(--border)">
+            <div class="nav-item" style="cursor: pointer" onclick="logout()">
+                <span class="icon">🚪</span> <span>Sair</span>
+            </div>
+        </div>
+    </aside>
 
-    <div class="container">
-        <div class="card">
-            <h2 style="margin-top: 0">Motor de Prosperação</h2>
-            <p style="color: var(--text-muted); margin-bottom: 24px">Selecione uma empresa já existente para
-                encontrarmos perfis gêmeos usando nossa IA preditiva.</p>
-
-            <div class="search-row">
-                <div class="input-group">
-                    <label>Empresa Âncora / Referência</label>
-                    <select id="empresaSelect">
-                        <option value="">Carregando bases...</option>
-                    </select>
+    <!-- Main -->
+    <main class="main-content">
+        <header class="top-bar">
+            <div style="display: flex; align-items: center; gap: 12px">
+                <div style="text-align: right">
+                    <div id="uName" style="font-weight: 500; font-size: 14px">Nome Usuário</div>
+                    <div id="uRole" style="font-size: 12px; color: #818CF8">Role</div>
                 </div>
-                <button onclick="buscarSimilares()" id="btnBuscar">Analisar e Encontrar</button>
+                <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%"></div>
+            </div>
+        </header>
+
+        <!-- Page: Lookalike -->
+        <div id="page-lookalike" class="page-container">
+            <h1>Motor de Prospecção</h1>
+            <p class="subtitle">Utilize IA para prospectar leads com perfil gêmeo à sua base.</p>
+
+            <div class="card">
+                <div class="form-grid" style="grid-template-columns: 1fr auto; align-items: flex-end;">
+                    <div class="input-group">
+                        <label>Empresa Âncora / Seed</label>
+                        <select id="seedSelect"
+                            style="padding: 12px; background: #0F172A; color: white; border: 1px solid var(--border); border-radius: 8px;">
+                            <option value="">Carregando empresas...</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="buscarLeads()" id="btnBuscar">Encontrar Leads</button>
+                </div>
+            </div>
+
+            <div class="results-grid" id="leadsDiv"></div>
+        </div>
+
+        <!-- Page: Perfil (NEW!) -->
+        <div id="page-perfil" class="page-container hidden">
+            <h1>Dados da Corporação</h1>
+            <p class="subtitle">Atualize as informações da sua empresa para faturamento e personalização.</p>
+
+            <div class="card">
+                <h3 style="margin-top:0">Perfil Corporativo</h3>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>Nome Fantasia</label>
+                        <input id="p_nome" value="Carregando...">
+                    </div>
+                    <div class="input-group">
+                        <label>CNPJ</label>
+                        <input id="p_cnpj" value="Carregando...">
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label>E-mail de Contato</label>
+                        <input id="p_email" value="Carregando...">
+                    </div>
+                    <div class="input-group">
+                        <label>Telefone</label>
+                        <input id="p_tel" value="Carregando...">
+                    </div>
+                </div>
+                <div class="input-group" style="margin-bottom: 30px">
+                    <label>URL LinkedIn da Empresa</label>
+                    <input id="p_link" placeholder="linkedin.com/company/...">
+                </div>
+                <button class="btn-primary" onclick="salvarPerfil()">Atualizar Dados</button>
             </div>
         </div>
 
-        <div class="results" id="resultados">
-            <!-- Cards renderizados via JS -->
+        <!-- Page: Contas (NEW!) -->
+        <div id="page-contas" class="page-container hidden">
+            <h1>Gestão de Contas</h1>
+            <p class="subtitle">Administre os usuários da plataforma de acordo com seu plano.</p>
+
+            <div class="card">
+                <h3 style="margin-top:0">Criar Novo Usuário</h3>
+                <p style="color: var(--text-muted); font-size: 14px">Sua conta 'Admin Corp' pode criar usuários do tipo
+                    Operador.</p>
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr auto; align-items: flex-end;">
+                    <div class="input-group"><label>Nome</label><input placeholder="Nome Completo"></div>
+                    <div class="input-group"><label>E-mail</label><input placeholder="email@empresa.com"></div>
+                    <button class="btn-primary">Convidar</button>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        const API_URL = 'http://localhost:8000/api';
-        let token = localStorage.getItem('b2b_token');
+        const API = 'http://localhost:8000/api';
+        let token = localStorage.getItem('token_saas');
 
-        // Inicialização
-        if (token) {
-            document.getElementById('loginModal').classList.add('hidden');
-            carregarEmpresas();
-            carregarUsuario();
-        }
+        if (token) init();
 
         async function fazerLogin() {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-
-            try {
-                const req = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, password: pass })
-                });
-
-                const res = await req.json();
-
-                if (req.ok) {
-                    token = res.access_token;
-                    localStorage.setItem('b2b_token', token);
-                    document.getElementById('loginModal').classList.add('hidden');
-                    carregarUsuario();
-                    carregarEmpresas();
-                } else {
-                    document.getElementById('loginError').innerText = res.detail || "Erro no login";
-                }
-            } catch (e) {
-                document.getElementById('loginError').innerText = "Erro de conexão API. (FastAPI está rodando?)";
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const resp = await fetch(`${API}/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password: pass })
+            });
+            if (resp.ok) {
+                const data = await resp.json();
+                token = data.access_token;
+                localStorage.setItem('token_saas', token);
+                init();
+            } else {
+                document.getElementById('loginError').innerText = "Credenciais inválidas.";
             }
         }
 
-        function logout() {
-            localStorage.removeItem('b2b_token');
-            location.reload();
+        function init() {
+            document.getElementById('loginOverlay').classList.add('hidden');
+            carregarQuemSou();
+            carregarEmpresas();
         }
 
-        async function carregarUsuario() {
-            const resp = await fetch(`${API_URL}/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
-            if (resp.ok) {
-                const user = await resp.json();
-                document.getElementById('userName').innerText = 'Logado como: ' + user.name;
+        async function carregarQuemSou() {
+            const r = await fetch(`${API}/auth/whoami`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (r.ok) {
+                const u = await r.json();
+                document.getElementById('uName').innerText = u.display_name;
+                document.getElementById('uRole').innerText = u.role.toUpperCase();
+                if (u.role === 'admin_corp' || u.role === 'owner') carregarPerfil();
+            }
+        }
+
+        async function carregarPerfil() {
+            const r = await fetch(`${API}/empresa/perfil`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (r.ok) {
+                const p = await r.json();
+                document.getElementById('p_nome').value = p.nome_fantasia;
+                document.getElementById('p_cnpj').value = p.cnpj;
+                document.getElementById('p_email').value = p.email_contato;
+                document.getElementById('p_tel').value = p.telefone;
+                document.getElementById('p_link').value = p.linkedin || '';
             }
         }
 
         async function carregarEmpresas() {
-            const select = document.getElementById('empresaSelect');
-            const resp = await fetch(`${API_URL}/empresas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            const r = await fetch(`${API}/empresas`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (r.ok) {
+                const data = await r.json();
+                const sel = document.getElementById('seedSelect');
+                sel.innerHTML = '<option value="">-- Selecione uma empresa --</option>';
+                data.forEach(e => sel.innerHTML += `<option value="${e.id}">${e.nome_empresa}</option>`);
+            }
+        }
 
-            if (resp.ok) {
-                const dados = await resp.json();
-                select.innerHTML = '<option value="">-- Selecione uma âncora --</option>';
-                dados.forEach(d => {
-                    select.innerHTML += `<option value="${d.id}">${d.nome_empresa} (CNAE: ${d.cnae})</option>`;
+        async function buscarLeads() {
+            const val = document.getElementById('seedSelect').value;
+            if (!val) return;
+            document.getElementById('btnBuscar').innerText = 'IA Processando...';
+            const r = await fetch(`${API}/lookalike`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ anchor_id: parseInt(val), top_n: 3 })
+            });
+            document.getElementById('btnBuscar').innerText = 'Encontrar Leads';
+            if (r.ok) {
+                const data = await r.json();
+                const div = document.getElementById('leadsDiv');
+                div.innerHTML = '';
+                data.forEach((l, i) => {
+                    const score = Math.round(100 - (l.distancia_score * 50));
+                    div.innerHTML += `
+            <div class="result-card">
+              <h3 style="margin:0">${l.nome_empresa}</h3>
+              <p style="font-size:12px; color:var(--text-muted)">CNAE ${l.cnae}</p>
+              <div class="match-score">
+                <div style="display:flex; justify-content:space-between; font-size:12px">
+                  <span>Similaridade</span> <strong>${score}%</strong>
+                </div>
+                <div class="progress-bg"><div class="progress-fill" style="width:${score}%"></div></div>
+              </div>
+              <button class="btn-primary" style="width:100%; margin-top:16px; background:#334155">Ver Detalhes</button>
+            </div>
+          `;
                 });
             }
         }
 
-        async function buscarSimilares() {
-            const val = document.getElementById('empresaSelect').value;
-            if (!val) return;
-
-            const btn = document.getElementById('btnBuscar');
-            btn.innerText = 'Processando...';
-
-            const resp = await fetch(`${API_URL}/lookalike`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ anchor_id: parseInt(val), top_n: 6 })
-            });
-
-            btn.innerText = 'Analisar e Encontrar';
-
-            if (resp.ok) {
-                const leads = await resp.json();
-                renderResultados(leads);
-            }
+        function showPage(id, el) {
+            document.querySelectorAll('.page-container').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`page-${id}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
         }
 
-        function renderResultados(leads) {
-            const resDiv = document.getElementById('resultados');
-            resDiv.innerHTML = '';
+        function logout() { localStorage.removeItem('token_saas'); location.reload(); }
 
-            leads.forEach((l, i) => {
-                const per = Math.max(0, Math.min(100, Math.round(100 - (l.distancia_score * 50))));
-                let rankColor = i === 0 ? '#F59E0B' : 'var(--primary)';
-
-                resDiv.innerHTML += `
-          <div class="result-card">
-            <div class="rank" style="background: ${rankColor}">${i + 1}</div>
-            <h3 style="margin-top:0; margin-bottom: 5px">${l.nome_empresa}</h3>
-            <p style="color: var(--text-muted); font-size: 14px; margin-top: 0">CNAE: ${l.cnae}</p>
-            
-            <div style="margin-top: 16px">
-              <span class="badge">Fat Nível ${l.faturamento_ordinal}</span>
-              <span class="badge">Func Nível ${l.funcionarios_ordinal}</span>
-            </div>
-
-            <div style="margin-top: 24px; padding: 12px; background: #0F172A; border-radius: 8px">
-              <div style="display: flex; justify-content: space-between; font-size: 14px;">
-                <span>Match Score</span>
-                <strong style="color: #10B981">${per}%</strong>
-              </div>
-              <div class="sim-bar">
-                <div class="sim-progress" style="width: ${per}%"></div>
-              </div>
-            </div>
-            
-            <button style="width: 100%; margin-top: 20px; background: #334155">Revelar Contato Pessoal</button>
-          </div>
-        `;
-            });
-        }
     </script>
 </body>
 
