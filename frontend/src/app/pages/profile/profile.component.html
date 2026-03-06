@@ -1,43 +1,55 @@
-<div class="profile-page">
-  <div class="profile-grid" *ngIf="user() as u">
-    <div class="info-card">
-      <div class="info-avatar">{{ u.name.charAt(0).toUpperCase() }}</div>
-      <h2>{{ u.name }}</h2>
-      <p class="info-email">{{ u.email }}</p>
-      <span class="role-badge" [class.role-admin]="u.role === 'admin'">
-        {{ u.role === 'admin' ? 'Administrador' : 'Analista' }}
-      </span>
-      <div class="info-meta" *ngIf="u.created_at">
-        <mat-icon>calendar_today</mat-icon>
-        <span>Membro desde {{ u.created_at | slice:0:10 }}</span>
-      </div>
-    </div>
-
-    <div class="edit-card">
-      <h3>Editar Perfil</h3>
-      <form [formGroup]="profileForm" (ngSubmit)="save()" class="profile-form">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nome</mat-label>
-          <input matInput formControlName="name" autocomplete="name" />
-          <mat-icon matPrefix>person</mat-icon>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Nova Senha</mat-label>
-          <input matInput formControlName="password" type="password" autocomplete="new-password" />
-          <mat-icon matPrefix>lock</mat-icon>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Confirmar Senha</mat-label>
-          <input matInput formControlName="passwordConfirm" type="password" autocomplete="new-password" />
-          <mat-icon matPrefix>lock_outline</mat-icon>
-        </mat-form-field>
-
-        <button mat-flat-button type="submit" class="save-btn" [disabled]="saving()">
-          {{ saving() ? 'Salvando...' : 'Salvar Alteracoes' }}
-        </button>
-      </form>
-    </div>
+<div class="profile-container">
+  <div class="header">
+    <h1>Perfil da Corporação</h1>
+    <p>Gerencie as informações da sua conta corporativa para personalização do SaaS.</p>
   </div>
+
+  <mat-card class="glass-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>business</mat-icon>
+      <mat-card-title>Dados Cadastrais</mat-card-title>
+      <mat-card-subtitle>Informações para faturamento e suporte</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form class="profile-form" (ngSubmit)="salvar()">
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Nome Fantasia</mat-label>
+            <input matInput [(ngModel)]="perfil().nome_fantasia" name="nome">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>CNPJ</mat-label>
+            <input matInput [(ngModel)]="perfil().cnpj" name="cnpj">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>E-mail de Contato</mat-label>
+            <input matInput type="email" [(ngModel)]="perfil().email_contato" name="email">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Telefone</mat-label>
+            <input matInput [(ngModel)]="perfil().telefone" name="tel">
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>LinkedIn da Empresa</mat-label>
+          <input matInput [(ngModel)]="perfil().linkedin" name="link">
+          <mat-icon matSuffix>link</mat-icon>
+        </mat-form-field>
+
+        <div class="actions">
+          <button mat-flat-button color="primary" [disabled]="loading()" type="submit">
+            <mat-icon *ngIf="loading()">sync</mat-icon>
+            Salvar Alterações
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
 </div>

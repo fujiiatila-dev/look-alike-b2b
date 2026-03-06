@@ -35,11 +35,9 @@ interface NavigationItem {
 
 const fspsNavItems: NavigationItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: 'dashboard', path: R.dashboard, exact: true, description: 'Visão geral' },
-  { id: 'cameras', label: 'Câmeras', icon: 'videocam', path: R.cameras, exact: false, description: 'Operação ao vivo' },
-  { id: 'events', label: 'Eventos', icon: 'video_library', path: R.events, exact: true, description: 'Linha do tempo' },
   { id: 'lookalike', label: 'Look-alike B2B', icon: 'business', path: R.lookalike, exact: false, description: 'Prospecção Inteligente' },
-  { id: 'ingest', label: 'Ingestão', icon: 'cloud_upload', path: R.eventsNew, exact: true, description: 'Nova análise' },
-  { id: 'audit', label: 'Auditoria', icon: 'fact_check', path: R.audit, exact: false, description: 'Rastreabilidade' },
+  { id: 'profile', label: 'Dados da Empresa', icon: 'corporate_fare', path: R.profile, exact: false, description: 'Perfil Corporativo' },
+  { id: 'users', label: 'Gestão de Contas', icon: 'manage_accounts', path: R.users, exact: false, description: 'Usuários e Permissões' },
 ];
 
 const officeNavItems: NavigationItem[] = [

@@ -1,62 +1,67 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { NgIf, SlicePipe } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { AuthService } from '../../core/auth/auth.service';
+
+interface EmpresaPerfil {
+  nome_fantasia: string;
+  cnpj: string;
+  email_contato: string;
+  telefone: string;
+  linkedin?: string;
+}
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
-    NgIf, SlicePipe, ReactiveFormsModule,
-    MatFormFieldModule, MatInputModule, MatButtonModule,
-    MatIconModule, MatSnackBarModule
+    CommonModule, FormsModule, HttpClientModule,
+    MatCardModule, MatFormFieldModule, MatInputModule,
+    MatButtonModule, MatIconModule, MatSnackBarModule
   ],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrls: ['./profile.component.scss']
 })
-export class ProfileComponent {
-  readonly auth = inject(AuthService);
-  private readonly fb = inject(FormBuilder);
-  private readonly snackBar = inject(MatSnackBar);
-
-  readonly saving = signal(false);
-  readonly user = this.auth.currentUser;
-
-  readonly profileForm = this.fb.nonNullable.group({
-    name: [this.auth.currentUser()?.name || '', Validators.required],
-    password: [''],
-    passwordConfirm: ['']
+export class ProfileComponent implements OnInit {
+  perfil = signal<EmpresaPerfil>({
+    nome_fantasia: '',
+    cnpj: '',
+    email_contato: '',
+    telefone: '',
+    linkedin: ''
   });
 
-  save(): void {
-    if (this.profileForm.invalid || this.saving()) return;
+  loading = signal(false);
 
-    const { name, password, passwordConfirm } = this.profileForm.getRawValue();
-    if (password && password !== passwordConfirm) {
-      this.snackBar.open('As senhas nao coincidem', 'OK', { duration: 3000 });
-      return;
-    }
+  constructor(private http: HttpClient, private snack: MatSnackBar) { }
 
-    this.saving.set(true);
-    const payload: { name?: string; password?: string } = {};
-    if (name) payload.name = name;
-    if (password) payload.password = password;
+  ngOnInit() {
+    this.carregarPerfil();
+  }
 
-    this.auth.updateProfile(payload).subscribe({
+  carregarPerfil() {
+    this.http.get<EmpresaPerfil>('/api/empresa/perfil').subscribe({
+      next: (data) => this.perfil.set(data),
+      error: () => this.snack.open('Erro ao carregar perfil', 'Fechar', { duration: 3000 })
+    });
+  }
+
+  salvar() {
+    this.loading.set(true);
+    this.http.put('/api/empresa/perfil', this.perfil()).subscribe({
       next: () => {
-        this.saving.set(false);
-        this.snackBar.open('Perfil atualizado com sucesso', 'OK', { duration: 3000 });
-        this.profileForm.patchValue({ password: '', passwordConfirm: '' });
+        this.loading.set(false);
+        this.snack.open('Perfil atualizado com sucesso!', 'OK', { duration: 3000 });
       },
       error: () => {
-        this.saving.set(false);
-        this.snackBar.open('Erro ao atualizar perfil', 'OK', { duration: 3000 });
+        this.loading.set(false);
+        this.snack.open('Erro ao salvar dados', 'Fechar', { duration: 3000 });
       }
     });
   }
