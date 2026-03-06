@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-height: 100vh;
-  background: var(--edge-bg);
+  background: radial-gradient(circle at center, var(--fd-primary) 0%, var(--edge-bg) 100%);
 }
 
 .login-wrapper {
@@ -15,34 +15,36 @@
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: var(--edge-surface);
+  background: var(--edge-bg);
   border-radius: var(--fd-radius-xl);
   border: 1px solid var(--edge-border);
   box-shadow: var(--fd-shadow-3);
   padding: 2.5rem 2rem;
+  text-align: center;
 }
 
 .login-brand {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.5rem;
   margin-bottom: 2rem;
 }
 
 .brand-icon {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 3.5rem;
+  height: 3.5rem;
   border-radius: var(--fd-radius-md);
   display: grid;
   place-items: center;
   background: var(--fd-primary);
   color: var(--fd-primary-fg);
-  box-shadow: 0 2px 8px rgba(255, 213, 0, 0.3);
+  margin-bottom: 0.5rem;
 
   mat-icon {
-    font-size: 1.35rem;
-    width: 1.35rem;
-    height: 1.35rem;
+    font-size: 2rem;
+    width: 2rem;
+    height: 2rem;
   }
 }
 
@@ -52,17 +54,15 @@
   line-height: 1.15;
 
   strong {
-    font-size: 1.15rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--edge-text);
   }
 
   span {
-    font-size: 0.72rem;
+    font-size: 0.85rem;
     font-weight: 500;
     color: var(--edge-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
   }
 }
 
